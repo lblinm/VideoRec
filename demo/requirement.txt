@@ -1,0 +1,2 @@
+pyqt6
+PyQt6-Fluent-Widgets -i https://pypi.org/simple/
