@@ -86,6 +86,7 @@ def predict_all(uid, ratings_matrix, user_similar):
         user_similar: 用户两两间的相似度
     return: 生成器，逐个返回预测评分
     '''
+    print("正在预测该用户对所有物品的评分")
     item_ids = ratings_matrix.columns
     for iid in item_ids:
         try:
@@ -93,7 +94,8 @@ def predict_all(uid, ratings_matrix, user_similar):
         except Exception as e:
             print(e)
         else:
-            yield uid, iid, rating
+            if rating != 0:
+              yield uid, iid, rating
 
 # 根据预测评分为指定用户进行top—N推荐
 def top_k_rs_result(rec_id, ratings_matrix,user_similar, top_n):

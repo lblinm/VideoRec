@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'e:\project\pyqt6_study\recommend.ui'
+# Form implementation generated from reading ui file 'e:\project\rec\work_together\demo\view\recommend.ui'
 #
 # Created by: PyQt6 UI code generator 6.4.2
 #
@@ -91,22 +91,16 @@ class Ui_recommend(object):
         self.verticalLayout.addLayout(self.horizontalLayout_3)
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        self.frame = QtWidgets.QFrame(parent=recommend)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.frame.sizePolicy().hasHeightForWidth())
-        self.frame.setSizePolicy(sizePolicy)
-        self.frame.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
-        self.frame.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
-        self.frame.setObjectName("frame")
-        self.label_rec_result = BodyLabel(parent=self.frame)
-        self.label_rec_result.setGeometry(QtCore.QRect(10, 10, 351, 16))
-        self.label_rec_result.setObjectName("label_rec_result")
-        self.horizontalLayout_5.addWidget(self.frame)
+        spacerItem9 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.horizontalLayout_5.addItem(spacerItem9)
+        self.textEdit_rec_res = TextEdit(parent=recommend)
+        self.textEdit_rec_res.setObjectName("textEdit_rec_res")
+        self.horizontalLayout_5.addWidget(self.textEdit_rec_res)
+        spacerItem10 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.horizontalLayout_5.addItem(spacerItem10)
         self.verticalLayout.addLayout(self.horizontalLayout_5)
-        spacerItem9 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
-        self.verticalLayout.addItem(spacerItem9)
+        spacerItem11 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        self.verticalLayout.addItem(spacerItem11)
 
         self.retranslateUi(recommend)
         QtCore.QMetaObject.connectSlotsByName(recommend)
@@ -122,6 +116,5 @@ class Ui_recommend(object):
         self.pushButton_video_num.setText(_translate("recommend", "确认"))
         self.label_rec_user.setText(_translate("recommend", "推荐视频给用户(uid)"))
         self.pushButton_rec_uid.setText(_translate("recommend", "确认"))
-        self.label_rec_result.setText(_translate("recommend", "基于用户的协同过滤算法推荐结果："))
-
-from qfluentwidgets import BodyLabel, CaptionLabel, LineEdit, PushButton
+        self.textEdit_rec_res.setMarkdown(_translate("recommend", ""))
+from qfluentwidgets import CaptionLabel, LineEdit, PushButton, TextEdit
