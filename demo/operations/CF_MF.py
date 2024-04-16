@@ -2,6 +2,7 @@ import random
 import math
 import os
 import pickle
+import pandas as pd
 from settings import DATA_PATH
 
 class BiasSVD():
