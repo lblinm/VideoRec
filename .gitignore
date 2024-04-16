@@ -1,2 +1,3 @@
 **/__pycache__/
 demo/data/*
+!demo/data/.gitKeep

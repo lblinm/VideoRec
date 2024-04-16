@@ -7,6 +7,7 @@ from qfluentwidgets import (
 )
 from view.recommend import Recommend
 
+import settings
 
 class Demo(SplitFluentWindow):
   

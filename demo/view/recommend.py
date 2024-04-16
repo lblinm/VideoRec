@@ -10,12 +10,11 @@ from qfluentwidgets import FluentIcon as FI
 from .Ui_recommend import Ui_recommend
 
 from operations.user_video_rating import user_video_rating  #模拟生成评分矩阵
-#from ..operation.xx 导入错误 - 不允许顶层包相对导入？
 from operations.load_data import load_data  #加载评分矩阵
-from operations.CF_user import *
-
-WORKING_PATH = os.path.dirname(sys.argv[0])
-DATA_PATH = WORKING_PATH+"/data"
+from operations.CF_user import CF_user
+from operations.find_video_title import find_video_title
+from operations.CF_MF import BiasSVD
+from settings import WORKING_PATH, DATA_PATH
 
 class Recommend(QWidget, Ui_recommend):
   def __init__(self, parent=None):
@@ -67,7 +66,7 @@ class Recommend(QWidget, Ui_recommend):
       num_watch = int(text)
       if hasattr(self, 'num_user'):
         print("即将生成用户评分矩阵")
-        user_video_rating(self.num_user, self.num_video, num_watch, DATA_PATH)
+        user_video_rating(self.num_user, self.num_video, num_watch)
         print("生成完毕")
       else:
         print("未输入生成用户数！")
@@ -81,28 +80,26 @@ class Recommend(QWidget, Ui_recommend):
     except:
       print("不合法输入！")
       return
-    ratings_matrix = load_data(DATA_PATH) #加载评分矩阵
-    similarity = compute_person_similarity(ratings_matrix) #计算/加载相似度矩阵
-    #predict(rec_uid, 100, ratings_matrix, similarity) #预测uid对vid的评分
-    rec_res = top_k_rs_result(rec_uid, ratings_matrix, similarity, 5)
-    #rec_res = [(1,1,9),(1,2,9),(1,3,9),(1,4,9),(1,5,9)] #测试用
-    # 取出推荐结果的标题
-    rec_tabel = []
-    rec_str = "推荐结果:\n\n"
+    #基于(用户)的评分矩阵
+    ratings_matrix = load_data() #加载评分矩阵
+    cf_user = CF_user(ratings_matrix,rec_uid)
+    cf_user.compute_person_similarity() #计算相似度矩阵
+    res = cf_user.top_k_rs_result()
+    #从标题文件中找出标题
+    if not hasattr(self, "video_title_path"):
+      self.video_title_path = os.path.join(WORKING_PATH, "../source/videos.csv")
+      #self.video_title_path = WORKING_PATH + "/../source/videos.csv"
+    rec_str = find_video_title(self.video_title_path, res)
+    self.textEdit_rec_res.setMarkdown(rec_str)
+    # try:
+    #   with open(self.video_title_path, newline="", encoding="utf-8-sig") as file:
+    #     reader = csv.reader(file)
+    #     for index,row in enumerate(reader):
+    #       if index in res:
+    #         rec_str += f"vid-{index}:{row[1]} \n\n"
 
-    if not hasattr(self, "video_title_path") :
-      self.video_title_path = WORKING_PATH + "/../source/videos.csv"
-    for item in rec_res:
-      rec_tabel.append(item[1])
-    try:
-      with open(self.video_title_path, newline="", encoding="utf-8-sig") as file:
-        reader = csv.reader(file)
-        for index,row in enumerate(reader):
-          if index in rec_tabel:
-            rec_str += f"vid-{index}:{row[1]} \n\n"
-
-      self.textEdit_rec_res.setMarkdown(rec_str)
-    except:
-      print("寻找视频标题目录失败")
-      self.textEdit_rec_res.setMarkdown("### 推荐结果:\n\n"+str(rec_tabel))
+    #   self.textEdit_rec_res.setMarkdown(rec_str)
+    # except:
+    #   print("寻找视频标题目录失败")
+    #   self.textEdit_rec_res.setMarkdown("### 推荐结果:\n\n"+str(res))
 
