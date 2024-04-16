@@ -87,7 +87,8 @@ class Recommend(QWidget, Ui_recommend):
     res = cf_user.top_k_rs_result()
     #从标题文件中找出标题
     if not hasattr(self, "video_title_path"):
-      self.video_title_path = WORKING_PATH + "/../source/videos.csv"
+      self.video_title_path = os.path.join(WORKING_PATH, "../source/videos.csv")
+      #self.video_title_path = WORKING_PATH + "/../source/videos.csv"
     rec_str = find_video_title(self.video_title_path, res)
     self.textEdit_rec_res.setMarkdown(rec_str)
     # try:
