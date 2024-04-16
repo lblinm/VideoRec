@@ -1,15 +1,18 @@
 import os
 import pandas as pd
 import numpy as np
-
-def load_data(data_path):
+import os
+from settings import DATA_PATH
+def load_data():
     '''
     加载数据
     data_path: 数据集|cache路径
     return: 用户-评分矩阵
     '''
-    ratings_path = data_path + "/ratings.csv"
-    cache_path = data_path + "/ratings_matrix.cache"
+    ratings_path = os.path.join(DATA_PATH, "ratings.csv")
+    # ratings_path = data_path + "/ratings.csv"
+    cache_path = os.path.join(DATA_PATH, "ratings.cache")
+    #cache_path = data_path + "/ratings_matrix.cache"
     #print("cache_path: ", cache_path)
     print("开始加载数据集...")
     if os.path.exists(cache_path):
