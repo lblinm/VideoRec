@@ -41,8 +41,6 @@ class Config(QConfig):
     recTopk = RangeConfigItem(
         "rec", "topk", 10, RangeValidator(10,100)
     )
-YEAR = 2024
-AUTHOR = "LHL"
 
 cfg = Config()
 cfg.themeMode.value = Theme.AUTO
