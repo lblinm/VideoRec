@@ -1,0 +1,21 @@
+{
+    "Folders": {
+        "Download": "E:/project/rec/work_together/demo",
+        "VideoTitle": [
+            "E:/project/rec/work_together/source/videos.csv"
+        ]
+    },
+    "rec": {
+        "algorithm": "Item based CF",
+        "topk": 100,
+        "recUid": "1"
+    },
+    "QFluentWidgets": {
+        "ThemeColor": "#ff009faa",
+        "ThemeMode": "Light"
+    },
+    "rating": {
+        "userNum": 754,
+        "videoPerPerson": 109
+    }
+}

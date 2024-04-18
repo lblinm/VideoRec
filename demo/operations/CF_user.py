@@ -1,16 +1,16 @@
 import os
 import pandas as pd
 import sys
-from settings import DATA_PATH
 
-CACHE_DIR = DATA_PATH
+
 #相似度计算
 class CF_user():
-		def __init__(self, rating_matrix, rec_id,based="user", top_n=5):
+		def __init__(self, rating_matrix, rec_id,based="user", top_n=10):
 			self.rating_matrix = rating_matrix
 			self.based = based
 			self.rec_id = rec_id
 			self.top_n = top_n
+			
 
 		def compute_person_similarity(self):
 			'''
@@ -18,8 +18,9 @@ class CF_user():
 			params:
 			return: 相似度矩阵
 			'''
-			user_similarity_cache_path = os.path.join(CACHE_DIR, "user_similarity.cache")
-			item_similarity_cache_path = os.path.join(CACHE_DIR, "item_similarity.cache")
+			user_similarity_cache_path = DATA_PATH = os.environ.get('DATA_PATH') + "\\user_similarity.cache"
+			item_similarity_cache_path = DATA_PATH = os.environ.get('DATA_PATH') + "\\item_similarity.cache"
+
 
 			#基于皮尔逊相关系数计算相似度
 			if self.based == "user":

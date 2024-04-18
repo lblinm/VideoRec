@@ -2,8 +2,8 @@ import random
 import csv
 import pandas as pd
 import os
-from settings import DATA_PATH
 
+DATA_PATH = os.environ.get('DATA_PATH')
 def user_video_rating(user_num, video_num, watch_per):
   ratings = []
   for uid in range(user_num):
