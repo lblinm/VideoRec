@@ -3,10 +3,10 @@ import math
 import os
 import pickle
 import pandas as pd
-from settings import DATA_PATH
-
+data_path = os.environ.get('DATA_PATH')
 class BiasSVD():
   def __init__(self, rating_matrix,rec_uid, F=5, alpha=0.1, lmbda=0.1, max_iter=100, top_n=5):
+    
     self.rating_matrix = rating_matrix  # 评分矩阵
     self.rec_uid = rec_uid
     self.F = F          # 这个表示隐向量的维度
@@ -28,10 +28,10 @@ class BiasSVD():
     self.mu = self.rating_matrix.mean()
 
   def train(self):
-    P_cache_path = os.path.join(DATA_PATH, "MF_P.pkl")
-    Q_cache_path = os.path.join(DATA_PATH, "MF_Q.pkl")
-    bu_cache_path = os.path.join(DATA_PATH, "MF_bu.pkl")
-    bi_cache_path = os.path.join(DATA_PATH, "MF_bi.pkl")
+    P_cache_path = data_path + '\\MF_P.pkl'
+    Q_cache_path = data_path + '\\MF_Q.pkl'
+    bu_cache_path = data_path + '\\MF_bu.pkl'
+    bi_cache_path = data_path + '\\MF_bi.pkl'
     if os.path.exists(P_cache_path):
       self.P = pickle.load(P_cache_path)
       self.Q = pickle.load(Q_cache_path)
