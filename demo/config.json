@@ -6,7 +6,7 @@
         ]
     },
     "rec": {
-        "algorithm": "Item based CF",
+        "algorithm": "User based CF",
         "topk": 100,
         "recUid": "1"
     },
@@ -15,7 +15,7 @@
         "ThemeMode": "Light"
     },
     "rating": {
-        "userNum": 754,
-        "videoPerPerson": 109
+        "userNum": 2110,
+        "videoPerPerson": 106
     }
 }
