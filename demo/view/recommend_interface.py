@@ -1,5 +1,5 @@
 # coding:utf-8
-from qfluentwidgets import (SettingCardGroup,
+from qfluentwidgets import (SettingCardGroup,OptionsConfigItem,
                             OptionsSettingCard, PushSettingCard,
                             PrimaryPushSettingCard, ScrollArea,
                             ExpandLayout,RangeSettingCard,
@@ -19,22 +19,31 @@ from operations.user_video_rating import user_video_rating  #模拟生成评分�
 from operations.load_data import load_data  #加载评分矩阵
 from operations.CF_user import CF_user
 from operations.find_video_title import find_video_title
-from operations.CF_MF import BiasSVD
+from operations.CF_SVD import SVD
 
 class WorkThread(QThread):
     finish_signal = pyqtSignal(list)
-    def __init__(self, recUid, topk, filepath,parent=None):
+    def __init__(self, recAlgorithm, recUid, topk, filepath,parent=None):
         super(WorkThread, self).__init__(parent)
+        self.recAlgorithm = recAlgorithm
         self.recUid = recUid
         self.topk = topk
         self.filepath = filepath
     def run(self):
+
         ratings_matrix = load_data()
-        cf_user = CF_user(ratings_matrix, self.recUid, top_n=self.topk)
-        cf_user.compute_person_similarity()
-        res = cf_user.top_k_rs_result()
-        rec_table = find_video_title(self.filepath,res)
-        self.finish_signal.emit(rec_table)
+        res = []
+        rec_table = []
+        if self.recAlgorithm == 'User based CF':
+            cf_user = CF_user(ratings_matrix, self.recUid, top_n=self.topk)
+            cf_user.compute_person_similarity()
+            res = cf_user.top_k_rs_result()
+        if self.recAlgorithm == 'SVD CF':
+            svd = SVD(ratings_matrix, self.recUid,self.topk)
+            svd.compute_svd()
+            res = svd.predict_rating()
+        rec_table = find_video_title(self.filepath, res)
+        self.finish_signal.emit(rec_table)  
         return
     
 class RecommendInterface(ScrollArea):
@@ -43,10 +52,15 @@ class RecommendInterface(ScrollArea):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         # 算法参数
+        ## 文件
         self.videoTitleFileFolder = cfg.videoTitleFiles.value #视频数据集文件夹
+        ## 评分
         self.userNum = cfg.userNum.value
         self.videoPerPerson = cfg.videoPerPerson.value
+        ## 推荐
+        self.recAlgorithm = cfg.recChoose.value
         self.recTopK = cfg.recTopk.value
+
 
         self.scrollWidget = QWidget()
         self.expandLayout = ExpandLayout(self.scrollWidget)
@@ -105,7 +119,7 @@ class RecommendInterface(ScrollArea):
             FIF.CALORIES,
             "推荐算法选择",
             "以哪一种算法做短视频推荐",
-            texts=["User based CF","Item based CF","BiasSVD","Content based"],
+            texts=["User based CF","Item based CF","SVD CF","Content based"],
             parent=self.recGroup
         )
         self.recUidSetting = EditSettingCard(
@@ -209,10 +223,10 @@ class RecommendInterface(ScrollArea):
     def __onVideoTitleFileFolderChange(self, lis:list):
         self.videoTitleFileFolder = lis
 
-    def __showWaitingTooltip(self):
+    def __showWaitingTooltip(self, s:str):
         """ show restart tooltip """
         InfoBar.info(
-            '正在生成推荐结果',
+            s,
             '请稍等...',
             duration=1500,
             parent=self
@@ -221,6 +235,13 @@ class RecommendInterface(ScrollArea):
     def __showWarningTooltip(self, s:str):
         InfoBar.warning(
             '警告',
+            s,
+            duration=1500,
+            parent=self
+        )
+    def __showSucessTooltip(self, s:str):
+        InfoBar.success(
+            '成功',
             s,
             duration=1500,
             parent=self
@@ -246,7 +267,10 @@ class RecommendInterface(ScrollArea):
 
     def __onVideoPerPersonChange(self, i:int):
         self.videoPerPerson = i
-      
+    
+    def __onRecChooseChange(self, cfgItem:OptionsConfigItem):
+        self.recAlgorithm = cfgItem.value
+
     def __connectSignalToSlot(self):
         """ connect signal to slot """
         # 文件 
@@ -257,17 +281,24 @@ class RecommendInterface(ScrollArea):
         self.userNumSetting.valueChanged.connect(self.__onUserNumChange)
         self.videoPerPersonSetting.valueChanged.connect(self.__onVideoPerPersonChange)
         self.ratingButton.clicked.connect(self.__buildRatingMatrix)
-        # 确认
+        # 推荐
+        self.recChooseSetting.optionChanged.connect(self.__onRecChooseChange)
+        self.recUidSetting.valueChanged.connect(self.__onRecUidChange)
+        # 结果
         self.topkSetting.valueChanged.connect(self.__onTopKChange)
         self.okButton.clicked.connect(self.__recommendStart)
-        self.recUidSetting.valueChanged.connect(self.__onRecUidChange)
+        
+
     def __buildRatingMatrix(self):
+        self.__showWaitingTooltip("正在生成")
         num_lines = 0
+        # 获取视频总数
         with open(self.videoTitleFileFolder[0],'r',newline='',encoding='utf-8-sig') as file:
             csv_reader = csv.reader(file)
             for _ in csv_reader:
                 num_lines += 1
         user_video_rating(self.userNum, num_lines, self.videoPerPerson)
+        self.__showSucessTooltip('生成评分矩阵成功')
 
     def __recommendStart(self):
         if self.videoTitleFileFolder == []:
@@ -276,8 +307,8 @@ class RecommendInterface(ScrollArea):
         if not hasattr(self,'recUid'):
             self.__showWarningTooltip('还未设置推荐用户的id')
             return
-        self.__showWaitingTooltip()
-        self.th = WorkThread(self.recUid, self.recTopK, self.videoTitleFileFolder[0])
+        self.__showWaitingTooltip("正在生成推荐结果")
+        self.th = WorkThread(self.recAlgorithm,self.recUid, self.recTopK, self.videoTitleFileFolder[0])
         self.th.finish_signal.connect(self.__recommendFinish)
         self.th.start()
 
@@ -287,6 +318,7 @@ class RecommendInterface(ScrollArea):
         for i in range(row_count):
             for j in range(2):
                 self.tableView.setItem(i, j, QTableWidgetItem(rec_table[i][j]))
+        self.__showSucessTooltip('生成推荐结果成功')
         
         
         

@@ -31,7 +31,7 @@ class Config(QConfig):
 
     # 推荐算法选择
     recChoose = OptionsConfigItem(
-        "rec", "algorithm", "Userbased CF", OptionsValidator(["User based CF","Item based CF","BiassSVD","Contend based"]))
+        "rec", "algorithm", "Userbased CF", OptionsValidator(["User based CF","Item based CF","SVD CF","Contend based"]))
     
     # 推荐用户id选择
     recUid = ConfigItem(

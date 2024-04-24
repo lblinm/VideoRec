@@ -6,16 +6,16 @@
         ]
     },
     "rec": {
-        "algorithm": "User based CF",
+        "algorithm": "SVD CF",
         "topk": 100,
-        "recUid": "1"
+        "recUid": "2"
     },
     "QFluentWidgets": {
         "ThemeColor": "#ff009faa",
         "ThemeMode": "Light"
     },
     "rating": {
-        "userNum": 2110,
-        "videoPerPerson": 106
+        "userNum": 975,
+        "videoPerPerson": 199
     }
 }

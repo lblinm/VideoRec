@@ -1,15 +1,17 @@
 import os
 import pandas as pd
-import sys
-
+import numpy as np
 
 #相似度计算
 class CF_user():
 		def __init__(self, rating_matrix, rec_id,based="user", top_n=10):
-			self.rating_matrix = rating_matrix
+			# self.rating_matrix = rating_matrix
 			self.based = based
 			self.rec_id = rec_id
 			self.top_n = top_n
+
+			self.rating_matrix = pd.DataFrame(rating_matrix.toarray())
+			self.rating_matrix.replace(0, np.nan, inplace=True)
 			
 
 		def compute_person_similarity(self):
@@ -37,7 +39,7 @@ class CF_user():
 					self.item_similarity = pd.read_pickle(item_similarity_cache_path)
 				else:
 					print("开始计算物品相似度矩阵")
-					self.item_similarity = self.rating_matrix.corr()
+					self.item_similarity = self.rating_matrix.corr  ()
 					self.item_similarity.to_pickle(item_similarity_cache_path)
 			else:
 				raise Exception("Unhandle 'based' Value: %s"%self.based)
@@ -54,7 +56,7 @@ class CF_user():
 
 			# 1-找出uid用户的相似用户
 			similar_users = self.user_similarity[self.rec_id].drop([self.rec_id]).dropna()
-			# 相似用户筛选原则：正相关的用户
+			# 相似用户筛选原则：正相关的用户 
 			similar_users = similar_users.where(similar_users>0).dropna()
 			if similar_users.empty is True:
 				raise Exception("用户<%d>没有相似的用户！"%self.rec_id)
