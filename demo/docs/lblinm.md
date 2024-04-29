@@ -85,3 +85,43 @@ https://zhuanlan.zhihu.com/p/665398874
 
 1. 数据可视化：视频类
 2.
+
+## 召回层做法
+
+1. 通过逻辑筛选：兴趣标签
+2. 协同过滤+快速近邻搜索算法
+   协同过滤：相似用户/被同样用户喜欢的物品协同过滤出候选物品
+3. Embedding+快速近邻搜索算法
+   Embedding：通过各种 embedding 手段得到的向量，如 word2vec, graph embedding, bert
+   快速近邻搜索算法：KDTree, min-hash, LSH
+
+### 快速近邻搜索算法
+
+#### KDTree
+
+![](assets/KDTree.png)
+
+#### LSH 与 MIN-HASH
+
+sh 全称是 Locality Sensitive Hashing（局部敏感哈希）。利用 And then Or 操作使查准的概率增大，误判的概率降低。
+
+Min-hash:属于 lsh 的一种，当两个向量能求 Jaccard 相似度时可用此方法。Jaccard 相似度=交集/并集。
+
+置换操作
+```python
+def doSig(inputMatrix):
+   seqSet = [i for i in range(inputMatrix.shape[0])]
+   result = [-1 for i in range(inputMatrix.shape[1])]
+   count =0 #初始化count
+
+   while len(seqSet)>0:
+      randomSeq = random.choice(seqSet) #随机选一个序号
+      for i in range(inputMatrix.shape[1]):
+         if inputMatrix[randomSeq][i] == 1 and result[i] == -1:
+            result[i] = randomSeq
+            count += 1
+      if count == inputMatrix.shape[1]:
+         break
+      seqSet.remove(randomSeq)
+   return result
+```

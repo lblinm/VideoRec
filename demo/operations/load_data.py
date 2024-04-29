@@ -15,7 +15,7 @@ def load_data():
 	else:
 		dtype = {"uid": np.int32, "vid": np.int32, "rating": np.float64}
 		ratings = pd.read_csv(ratings_path,dtype=dtype, usecols=range(3))
-
+		
 		data_array = ratings['rating']
 		row_array = ratings['uid']
 		col_array = ratings['vid']
