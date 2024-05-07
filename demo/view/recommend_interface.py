@@ -15,16 +15,17 @@ from utils.style_sheet import StyleSheet
 from utils.settings import cfg
 import csv
 #================operations=================
-from operations.user_video_rating import user_video_rating  #模拟生成评分矩阵
+# from operations.user_video_rating import user_video_rating  #模拟生成评分矩阵
+from operations.generate_rating_scores import generate_rating
 from operations.load_data import load_data  #加载评分矩阵
 from operations.CF_user import CF_user
 from operations.find_video_title import find_video_title
 from operations.CF_SVD import SVD
 
-class WorkThread(QThread):
+class WorkThread1(QThread):
     finish_signal = pyqtSignal(list)
     def __init__(self, recAlgorithm, recUid, topk, filepath,parent=None):
-        super(WorkThread, self).__init__(parent)
+        super(WorkThread1, self).__init__(parent)
         self.recAlgorithm = recAlgorithm
         self.recUid = recUid
         self.topk = topk
@@ -46,6 +47,16 @@ class WorkThread(QThread):
         self.finish_signal.emit(rec_table)  
         return
     
+class WorkThread2(QThread):
+    def __init__(self, tag_matrix, video_num, user_num, videos_watched_per_user, parent=None):
+        super(WorkThread2, self).__init__(parent)
+        self.tag_matrix = tag_matrix
+        self.video_num = video_num
+        self.user_num = user_num
+        self.videos_watched_per_user = videos_watched_per_user
+    def run(self):
+        generate_rating(self.tag_matrix, self.video_num, self.user_num, self.videos_watched_per_user)
+
 class RecommendInterface(ScrollArea):
     """ Setting interface """
 
@@ -78,13 +89,6 @@ class RecommendInterface(ScrollArea):
         )
         
 
-        self.downloadFolderCard = PushSettingCard(
-            '下载',
-            FIF.DOWNLOAD,
-            '下载评分数据集',
-            cfg.get(cfg.downloadFolder),
-            self.pathGroup
-        )
 
         # 评分
         self.ratingGroup = SettingCardGroup(
@@ -178,7 +182,7 @@ class RecommendInterface(ScrollArea):
 
         # add cards to group
         self.pathGroup.addSettingCard(self.videoTitleFolderCard)
-        self.pathGroup.addSettingCard(self.downloadFolderCard)
+
 
         self.ratingGroup.addSettingCard(self.userNumSetting)
         self.ratingGroup.addSettingCard(self.videoPerPersonSetting)
@@ -246,15 +250,7 @@ class RecommendInterface(ScrollArea):
             duration=1500,
             parent=self
         )
-    def __onDownloadFolderCardClicked(self):
-        """ download folder card clicked slot """
-        folder = QFileDialog.getExistingDirectory(
-            self, self.tr("Choose folder"), "./")
-        if not folder or cfg.get(cfg.downloadFolder) == folder:
-            return
 
-        cfg.set(cfg.downloadFolder, folder)
-        self.downloadFolderCard.setContent(folder)
 
     def __onRecUidChange(self, text:str):
         self.recUid = int(text)
@@ -275,8 +271,7 @@ class RecommendInterface(ScrollArea):
         """ connect signal to slot """
         # 文件 
         self.videoTitleFolderCard.fileChanged.connect(self.__onVideoTitleFileFolderChange)
-        self.downloadFolderCard.clicked.connect(
-            self.__onDownloadFolderCardClicked)
+
         # 评分
         self.userNumSetting.valueChanged.connect(self.__onUserNumChange)
         self.videoPerPersonSetting.valueChanged.connect(self.__onVideoPerPersonChange)
@@ -290,15 +285,18 @@ class RecommendInterface(ScrollArea):
         
 
     def __buildRatingMatrix(self):
-        self.__showWaitingTooltip("正在生成")
-        num_lines = 0
+        self.__showWaitingTooltip("正在生成评分矩阵，这可能需要几分钟，请耐心等候~")
+        num_lines = -1
         # 获取视频总数
         with open(self.videoTitleFileFolder[0],'r',newline='',encoding='utf-8-sig') as file:
             csv_reader = csv.reader(file)
             for _ in csv_reader:
                 num_lines += 1
-        user_video_rating(self.userNum, num_lines, self.videoPerPerson)
-        self.__showSucessTooltip('生成评分矩阵成功')
+        # user_video_rating(self.userNum, num_lines, self.videoPerPerson)
+        self.th2 = WorkThread2(self.videoTitleFileFolder[0], num_lines, self.userNum, self.videoPerPerson)
+        # generate_rating(self.videoTitleFileFolder[0],num_lines, self.userNum, self.videoPerPerson)
+        self.th2.start()
+        self.th2.finished.connect(lambda: self.__showSucessTooltip("生成评分矩阵成功"))
 
     def __recommendStart(self):
         if self.videoTitleFileFolder == []:
@@ -308,9 +306,9 @@ class RecommendInterface(ScrollArea):
             self.__showWarningTooltip('还未设置推荐用户的id')
             return
         self.__showWaitingTooltip("正在生成推荐结果")
-        self.th = WorkThread(self.recAlgorithm,self.recUid, self.recTopK, self.videoTitleFileFolder[0])
-        self.th.finish_signal.connect(self.__recommendFinish)
-        self.th.start()
+        self.th1 = WorkThread1(self.recAlgorithm,self.recUid, self.recTopK, self.videoTitleFileFolder[0])
+        self.th1.finish_signal.connect(self.__recommendFinish)
+        self.th1.start()
 
     def __recommendFinish(self, rec_table:list):
         row_count = len(rec_table) if rec_table else 0

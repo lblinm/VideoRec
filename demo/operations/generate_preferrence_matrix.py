@@ -1,6 +1,6 @@
 import csv
 import numpy as np
-import time
+import os
 
 
 def createUserPreferenceMatrix(num_users, num_categories):
@@ -14,7 +14,7 @@ def createUserPreferenceMatrix(num_users, num_categories):
     # start_time = time.time()
     preference_slot = [1.2, 1.2, 1.1, 1.1, 1, 1, 1, 1, 1, 0.9, 0.9, 0.8, 0.8]
 
-    user_preference_csv = "user_preference_matrix.csv"
+    user_preference_csv = os.environ.get('DATA_PATH') + "\\user_preference_matrix.csv"
     with open(user_preference_csv, 'w', newline='') as file:
         writer = csv.writer(file)
         column_headers = [f'Category_{i}' for i in range(num_categories)]

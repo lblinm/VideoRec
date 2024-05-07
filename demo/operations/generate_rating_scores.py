@@ -1,12 +1,12 @@
 import pandas as pd
+import numpy as np
 import random
 import math
 import csv
-from generate_rating_array import generate_data
-from group_number_mapping import get_corresponding_video_groups
-from generate_preferrence_matrix import createUserPreferenceMatrix
+from operations.generate_preferrence_matrix import createUserPreferenceMatrix
 import time
 import heapq
+import os
 
 # 240430 20:02 02版本： 生成评分耗时538.56秒，三部分耗时：0，0.048，0.006
 # 这个版本，假设了用户数，固定了视频的分组数量，并且假设了具体要看的视频个数
@@ -16,11 +16,84 @@ import heapq
 # 2.尝试优化第二部分的时间复杂度
 #   2.1 进行第二部分的时间复杂度分析
 #   2.2 尝试优化时间复杂度，使其降低一个量级，其次再考虑常数级别的优化
+def generate_data(data_type, size):
+    """
+    生成指定评分风格和大小的评分数据。
+    Parameters:
+        data_type (int): 数据类型。0表示严苛型，1表示宽松型，2表示极端型，3表示中庸型。
+        size (int): 生成数据的大小。
+    Returns:
+        numpy.ndarray: 生成的数据。
+    """
+    # 严苛型评分风格：
+    if data_type == 0:
+        a = 1 / 0.775
+        b = 0.125 / (0.525 + 0.125) + 2
+        data = np.random.normal(loc=b, scale=a, size=size)
+        condition1 = data < 0
+        data[condition1] = 1 + 1 / (1 - data[condition1])
+        condition2 = (data >= 0) & (data < 0.5)
+        data[condition2] = 4 + data[condition2] * 2
+        condition3 = (data >= 0.5) & (data < 1)
+        data[condition3] = (data[condition3] - 0.5) * 2
+        condition4 = data > 5
+        data[condition4] = 4 + 1 / (data[condition4] - 4)
+    # 宽松型评分风格：
+    elif data_type == 1:
+        a = 1 / 0.95
+        b = 0.265 / (0.265 + 0.685) + 3
+        data = np.random.normal(loc=b, scale=a, size=size)
+        condition1 = data < 1
+        data[condition1] = 3 + 1 / (2 - data[condition1])
+        condition2 = data > 5
+        data[condition2] = 5 - 1 / (data[condition2] - 4)
+    # 极端型评分风格：
+    elif data_type == 2:
+        a = 1 / 0.385
+        b = 1
+        data = np.random.normal(loc=b, scale=a, size=size)
+        condition1 = data < -0.5
+        data[condition1] = 3 + 2 / (0.5 - data[condition1])
+        condition2 = (data >= -0.5) & (data < 1)
+        data[condition2] = (data[condition2] + 0.5) * (2 / 3)
+        condition3 = (data >= 2) & (data < 3)
+        data[condition3] = 2 - 2 / (data[condition3] - 1)
+        condition4 = data > 5
+        data[condition4] = 5 - 1 / (data[condition4] - 4)
+    # 中庸型评分风格：
+    elif data_type == 3:
+        a = 1 / 1.015
+        b = 0.685 / (0.125 + 0.685) + 2 + 0.17
+        data = np.random.normal(loc=b, scale=a, size=size)
+        condition1 = data < 1
+        data[condition1] = 3 + 2 / (2 - data[condition1])
+        condition2 = data > 5
+        data[condition2] = 5 - (data[condition2] - 4)
+    else:
+        raise ValueError("Invalid data type. Please choose between 0, 1, 2, or 3.")
 
+    return data
 
-def generate_rating(user_num, videos_watched_per_user):
+def get_corresponding_video_groups(user_group_num,video_group_num):
+    video_groups_first = []
+    video_groups_second = []
+
+    # 计算第一个组号集：视频组号 % 4 = 用户组号 n
+    for i in range(video_group_num):  # 假设有12个视频组
+        if i % 4 == user_group_num:
+            video_groups_first.append(i)
+
+    # 计算第二个组号集：(视频组号 + 1) % 4 = 用户组号 n 或 (视频组号 + 2) % 4 = 用户组号 n
+    for i in range(video_group_num):  # 假设有12个视频组
+        if (i + 1) % 4 == user_group_num or (i + 2) % 4 == user_group_num:
+            video_groups_second.append(i)
+
+    return video_groups_first, video_groups_second
+
+def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
     """
     目前函数会输出总用时，要删掉自行注释
+    :param tag_matrix: 视频标题数据集
     :param user_num: 用户数量
     :param videos_watched_per_user: 想要每个用户观看的视频数
     :return: 没有返回值，直接写入指定路径的csv文件
@@ -28,13 +101,13 @@ def generate_rating(user_num, videos_watched_per_user):
     # 初始化偏好矩阵
     createUserPreferenceMatrix(user_num, 14)
     # 相关文件地址，请注意修改成本地文件地址
-    csv_file = "rating.csv"
-    preference_matrix = "user_preference_matrix.csv"
-    tag_matrix = "E:\\DataStructure\\240428第二版本\\work_together-master\\source\\video_titles.csv"
+    csv_file = os.environ.get('DATA_PATH')+"\\ratings.csv"
+    preference_matrix = os.environ.get('DATA_PATH')+"\\user_preference_matrix.csv"
+    # tag_matrix = "E:\\DataStructure\\240428第二版本\\work_together-master\\source\\video_titles.csv"
 
     # 视频数量已定，假设用户数为10003，可以调整每个用户观看的视频数
     # user_num = 10003
-    video_num = 118709
+    # video_num = 118709
     # 用户组数也恒定为4，相关变量已经确定了
     user_per_group = math.floor(user_num / 4)
     user_remaining = user_num % 4  # 前user_remaining组实际数量是user_per_group+1
@@ -161,7 +234,7 @@ def generate_rating(user_num, videos_watched_per_user):
             targeted_video_size = len(targeted_video)
             # print(targeted_video_size)
 
-            per_end_time1 = time.time()
+            # per_end_time1 = time.time()
             # 第二部分
 
             for video_index in preference:
@@ -210,7 +283,7 @@ def generate_rating(user_num, videos_watched_per_user):
             # print(targeted_video_size)
             rating = generate_data(user_id % 4, targeted_video_size)
 
-            per_end_time2 = time.time()
+            # per_end_time2 = time.time()
             # 第三部分
 
             for i in range(targeted_video_size):
@@ -227,14 +300,14 @@ def generate_rating(user_num, videos_watched_per_user):
                     temp_video_quality = 0.9
                 writer.writerow([user_id, targeted_video[i], round(rating[i]*temp_preference*temp_video_quality if rating[i]*temp_preference*temp_video_quality <= 5 else 5, 3)])
 
-            per_end_time3 = time.time()
+            # per_end_time3 = time.time()
 
             # 性能测试
             if user_id % 200 == 0:
                 end_time2 = time.time()
                 execution_time2 = end_time2-start_time
                 print(f"目前处理到user_id:{user_id}到此消耗的时间为：{execution_time2}秒")
-                print(f"第一部分耗时{per_end_time1-per_start_time}，第二部分耗时{per_end_time2-per_end_time1},第三部分耗时{per_end_time3-per_end_time2}")
+                # print(f"第一部分耗时{per_end_time1-per_start_time}，第二部分耗时{per_end_time2-per_end_time1},第三部分耗时{per_end_time3-per_end_time2}")
                 print(f"目标视频数量为{targeted_video_size}")
 
     end_time = time.time()

@@ -47,6 +47,7 @@ class SVD():
     save_npz(SVD_R_path, self.R)
     print("计算隐向量完毕")
     
+    
   def predict_rating(self):
     prod = self.U[self.rec_uid,:] * self.R
     prod_dense = prod.todense().A.flatten()

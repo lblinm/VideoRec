@@ -20,14 +20,13 @@ class Config(QConfig):
     videoTitleFiles = ConfigItem(
         "Folders", "VideoTitle", [] 
     )
-    downloadFolder = ConfigItem(
-        "Folders", "Download", "app/download", FolderValidator())
+
 
     # 评分矩阵的用户数量
-    userNum = RangeConfigItem("rating", "userNum", 1000, RangeValidator(0,10000))
+    userNum = RangeConfigItem("rating", "userNum", 10000, RangeValidator(5000,20000))
 
     # 评分矩阵每用户观看视频
-    videoPerPerson = RangeConfigItem("rating","videoPerPerson", 100, RangeValidator(0,500))
+    videoPerPerson = RangeConfigItem("rating","videoPerPerson", 500, RangeValidator(500,2000))
 
     # 推荐算法选择
     recChoose = OptionsConfigItem(
