@@ -10,12 +10,8 @@ import os
 
 # 240430 20:02 02版本： 生成评分耗时538.56秒，三部分耗时：0，0.048，0.006
 # 这个版本，假设了用户数，固定了视频的分组数量，并且假设了具体要看的视频个数
-# 现在是03版本，以下是此版本拟优化or解决的问题
-# 1.要求能够调整每个用户观看的视频数
-#   1.1 根据拟观看视频数，计算出合适的min_rating_num，以及偏好评分观看的数量
-# 2.尝试优化第二部分的时间复杂度
-#   2.1 进行第二部分的时间复杂度分析
-#   2.2 尝试优化时间复杂度，使其降低一个量级，其次再考虑常数级别的优化
+# 现在是04版本，相比03版本，访存函数从loc换成了at，在每次访存时省去了判断是否访问多格的判断函数调用
+
 def generate_data(data_type, size):
     """
     生成指定评分风格和大小的评分数据。
@@ -140,7 +136,8 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
     # 暂定用户组数恒定为4，先确定视频组数
     video_group_num = 4 * minimal_unit
 
-    # 这里取组数后是要保证除以组数后每组视频的个数比每组用户的个数小
+    # 这里取组数后是要保证除以组数后每组视频的个数比每组用户的个数小  
+    # 04版本注释：但后期改了后好像也能支持，当用户数过小时，算法会自动忽略均匀评分，只剩偏好评分
     video_per_group = math.floor(video_num / video_group_num)
     video_remaining = video_num % video_group_num
 
@@ -166,7 +163,8 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
     # print("用户分组情况:", user_groups)
     # print("视频分组情况:", video_groups)
 
-    # 第二步：均匀打分：保证评分数量最低限
+    # 第二步：均匀打分：保证评分数量最低限  
+    # 04版本注释：用户数与单用户观看视频数过低会自动忽略
     # 可以用随机取替代直接对应关系，这里直接取余对应，余1->1,余0->4
 
     # 随机数生成也放入数组 以数组操作
@@ -250,10 +248,10 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
                     video_id = (current_user_id - user_begin[user_group_index] + video_groups[video_index] + i) % video_groups[video_index]
                     exact_video_id = video_id * video_group_num + video_index
                     # video_stack.append(exact_video_id) # 改成最小堆
-                    temp_preference = data_preference.loc[user_id, f"Category_{data_tags.loc[exact_video_id, 'tag']}"]
-                    if data_tags.loc[exact_video_id, 'play'] >= 10000:
+                    temp_preference = data_preference.at[user_id, f"Category_{data_tags.at[exact_video_id, 'tag']}"]
+                    if data_tags.at[exact_video_id, 'play'] >= 10000:
                         temp_video_quality = 1.11
-                    elif data_tags.loc[exact_video_id, 'play'] < 100:
+                    elif data_tags.at[exact_video_id, 'play'] < 100:
                         temp_video_quality = 0.9
                     else:
                         temp_video_quality = 1
@@ -287,14 +285,14 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
             # 第三部分
 
             for i in range(targeted_video_size):
-                temp_preference = data_preference.loc[user_id, f"Category_{data_tags.loc[targeted_video[i], 'tag']}"]
-                if data_tags.loc[exact_video_id, 'play'] >= 200000:
+                temp_preference = data_preference.at[user_id, f"Category_{data_tags.at[targeted_video[i], 'tag']}"]
+                if data_tags.at[exact_video_id, 'play'] >= 200000:
                     temp_video_quality = 1.3
-                elif data_tags.loc[exact_video_id, 'play'] >= 100000:
+                elif data_tags.at[exact_video_id, 'play'] >= 100000:
                     temp_video_quality = 1.25
-                elif data_tags.loc[exact_video_id, 'play'] >= 10000:
+                elif data_tags.at[exact_video_id, 'play'] >= 10000:
                     temp_video_quality = 1.11
-                elif data_tags.loc[exact_video_id, 'play'] >= 1000:
+                elif data_tags.at[exact_video_id, 'play'] >= 1000:
                     temp_video_quality = 1
                 else:
                     temp_video_quality = 0.9
