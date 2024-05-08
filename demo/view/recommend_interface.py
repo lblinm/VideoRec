@@ -14,6 +14,7 @@ from components.edit_setting_card import EditSettingCard
 from utils.style_sheet import StyleSheet
 from utils.settings import cfg
 import csv
+import os
 #================operations=================
 # from operations.user_video_rating import user_video_rating  #模拟生成评分矩阵
 from operations.generate_rating_scores import generate_rating
@@ -21,7 +22,7 @@ from operations.load_data import load_data  #加载评分矩阵
 from operations.CF_user import CF_user
 from operations.find_video_title import find_video_title
 from operations.CF_SVD import SVD
-
+from operations.CB import CB_recommend
 class WorkThread1(QThread):
     finish_signal = pyqtSignal(list)
     def __init__(self, recAlgorithm, recUid, topk, filepath,parent=None):
@@ -39,10 +40,12 @@ class WorkThread1(QThread):
             cf_user = CF_user(ratings_matrix, self.recUid, top_n=self.topk)
             cf_user.compute_person_similarity()
             res = cf_user.top_k_rs_result()
-        if self.recAlgorithm == 'SVD CF':
+        elif self.recAlgorithm == 'SVD CF':
             svd = SVD(ratings_matrix, self.recUid,self.topk)
             svd.compute_svd()
             res = svd.predict_rating()
+        elif self.recAlgorithm == 'Contend based':
+            res = CB_recommend(self.filepath, ratings_matrix, self.recUid, self.topk)
         rec_table = find_video_title(self.filepath, res)
         self.finish_signal.emit(rec_table)  
         return
@@ -65,6 +68,7 @@ class RecommendInterface(ScrollArea):
         # 算法参数
         ## 文件
         self.videoTitleFileFolder = cfg.videoTitleFiles.value #视频数据集文件夹
+        
         ## 评分
         self.userNum = cfg.userNum.value
         self.videoPerPerson = cfg.videoPerPerson.value
@@ -304,6 +308,9 @@ class RecommendInterface(ScrollArea):
             return
         if not hasattr(self,'recUid'):
             self.__showWarningTooltip('还未设置推荐用户的id')
+            return
+        if not os.path.exists(os.environ.get("DATA_PATH")+"\\ratings.csv"):
+            self.__showWarningTooltip('还未生成评分矩阵')
             return
         self.__showWaitingTooltip("正在生成推荐结果")
         self.th1 = WorkThread1(self.recAlgorithm,self.recUid, self.recTopK, self.videoTitleFileFolder[0])

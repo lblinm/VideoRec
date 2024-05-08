@@ -10,7 +10,8 @@ import os
 
 # 240430 20:02 02版本： 生成评分耗时538.56秒，三部分耗时：0，0.048，0.006
 # 这个版本，假设了用户数，固定了视频的分组数量，并且假设了具体要看的视频个数
-# 现在是04版本，相比03版本，访存函数从loc换成了at，在每次访存时省去了判断是否访问多格的判断函数调用
+# 240507 20:00 现在是04版本，相比03版本，访存函数从loc换成了at，在每次访存时省去了判断是否访问多格的判断函数调用
+# 240507 23:00 现在是05版本，暂定最终版本，将IO放在循环前，存入数组；循环过程访问数组
 
 def generate_data(data_type, size):
     """
@@ -94,6 +95,7 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
     :param videos_watched_per_user: 想要每个用户观看的视频数
     :return: 没有返回值，直接写入指定路径的csv文件
     """
+    print("checkpoint0")
     # 初始化偏好矩阵
     createUserPreferenceMatrix(user_num, 14)
     # 相关文件地址，请注意修改成本地文件地址
@@ -108,7 +110,7 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
     user_per_group = math.floor(user_num / 4)
     user_remaining = user_num % 4  # 前user_remaining组实际数量是user_per_group+1
 
-    # new: 确认用户数支持的最小视频组数，视频组数小生成速度理应更快
+    # 02版本:new: 确认用户数支持的最小视频组数，视频组数小生成速度理应更快
     minimal_unit = 12  # minimal_unit最视频组中每组的四分之一，初始为12
     for i in [44, 40, 36, 32, 28, 24, 20, 16, 12]:
         if video_num / i < user_per_group:
@@ -117,7 +119,7 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
         else:
             break
 
-    # new:输入指定视频数量，计算出需要的min_rating_num与preferred_rating_num
+    # 02版本:new:输入指定视频数量，计算出需要的min_rating_num与preferred_rating_num
     # videos_watched_per_user = 1000
 
     if videos_watched_per_user > 30 * minimal_unit:
@@ -187,6 +189,41 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
     # 但要注意：user_current - user_begin + video_begin > video_num_in_group + video_begin 时，对应的video_current实际不存在
     # 这个模型是存在组内小部分用户在均匀打分过程中所看视频不足video_num_in_group的，甚至没被分配到视频
 
+    # 05版本需要提前IO，所以这段函数前调
+    data_preference = pd.read_csv(preference_matrix)
+    data_tags = pd.read_csv(tag_matrix)
+
+
+    print("checkpoint1")
+    # 05版本：各IO提前存储到数组里
+    # 1.播放量->视频质量
+    video_play = data_tags['play']
+    video_quality1 = []
+    video_quality2 = []
+    for play in video_play:
+        if play >= 200000:
+            video_quality1.append(1.11)
+            video_quality2.append(1.3)
+        elif play >= 100000:
+            video_quality1.append(1.11)
+            video_quality2.append(1.25)
+        elif play >= 10000:
+            video_quality1.append(1.11)
+            video_quality2.append(1.11)
+        elif play >= 1000:
+            video_quality1.append(1)
+            video_quality2.append(1)
+        elif play >= 100:
+            video_quality1.append(1)
+            video_quality2.append(0.9)
+        else:
+            video_quality1.append(0.9)
+            video_quality2.append(0.9)
+    print("checkpoint2")
+    # 2.视频标签
+    video_tag = data_tags['tag']
+    print("checkpoint3")
+
     # 第三步：偏好评分
     # 假定：第a组均匀评分，则a+1、a+2两组对该组视频进行偏好打分
     # 要减小计算量，还是得二次减小区间，即仍然只取部分，累积覆盖完
@@ -205,8 +242,7 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
     # 给定user_id，计算出其分组以及均匀评分分配到的视频
     start_time = time.time()
 
-    data_preference = pd.read_csv(preference_matrix)
-    data_tags = pd.read_csv(tag_matrix)
+    
 
     with open(csv_file, 'w', newline='') as file:
         writer = csv.writer(file)
@@ -234,6 +270,9 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
 
             # per_end_time1 = time.time()
             # 第二部分
+            
+            # 05版本：事先存储用户的preference
+            user_preference = data_preference.loc[user_id]
 
             for video_index in preference:
                 current_user_id = user_id + video_begin[video_index]
@@ -248,13 +287,17 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
                     video_id = (current_user_id - user_begin[user_group_index] + video_groups[video_index] + i) % video_groups[video_index]
                     exact_video_id = video_id * video_group_num + video_index
                     # video_stack.append(exact_video_id) # 改成最小堆
-                    temp_preference = data_preference.at[user_id, f"Category_{data_tags.at[exact_video_id, 'tag']}"]
-                    if data_tags.at[exact_video_id, 'play'] >= 10000:
-                        temp_video_quality = 1.11
-                    elif data_tags.at[exact_video_id, 'play'] < 100:
-                        temp_video_quality = 0.9
-                    else:
-                        temp_video_quality = 1
+                    # temp_preference = data_preference.at[user_id, f"Category_{data_tags.at[exact_video_id, 'tag']}"]
+                    temp_preference = user_preference[f"Category_{video_tag[exact_video_id]}"]  # 05版本更改
+
+                    # 05版本：下面注释部分改用使用数组提前计算、存储
+                    temp_video_quality = video_quality1[exact_video_id]
+                    # if data_tags.at[exact_video_id, 'play'] >= 10000:
+                    #     temp_video_quality = 1.11
+                    # elif data_tags.at[exact_video_id, 'play'] < 100:
+                    #     temp_video_quality = 0.9
+                    # else:
+                    #     temp_video_quality = 1
 
                     if len(min_heap) < preferred_rating_num:
                         heapq.heappush(min_heap, (temp_preference * temp_video_quality, exact_video_id))
@@ -285,17 +328,23 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
             # 第三部分
 
             for i in range(targeted_video_size):
-                temp_preference = data_preference.at[user_id, f"Category_{data_tags.at[targeted_video[i], 'tag']}"]
-                if data_tags.at[exact_video_id, 'play'] >= 200000:
-                    temp_video_quality = 1.3
-                elif data_tags.at[exact_video_id, 'play'] >= 100000:
-                    temp_video_quality = 1.25
-                elif data_tags.at[exact_video_id, 'play'] >= 10000:
-                    temp_video_quality = 1.11
-                elif data_tags.at[exact_video_id, 'play'] >= 1000:
-                    temp_video_quality = 1
-                else:
-                    temp_video_quality = 0.9
+                # temp_preference = data_preference.at[user_id, f"Category_{data_tags.at[targeted_video[i], 'tag']}"]
+                # if data_tags.at[exact_video_id, 'play'] >= 200000:
+                #     temp_video_quality = 1.3
+                # elif data_tags.at[exact_video_id, 'play'] >= 100000:
+                #     temp_video_quality = 1.25
+                # elif data_tags.at[exact_video_id, 'play'] >= 10000:
+                #     temp_video_quality = 1.11
+                # elif data_tags.at[exact_video_id, 'play'] >= 1000:
+                #     temp_video_quality = 1
+                # else:
+                #     temp_video_quality = 0.9
+
+                # 05版本，同第二部分的更改
+                temp_preference = user_preference[f"Category_{video_tag[targeted_video[i]]}"]
+                # 05版本：用数组提前计算并存储
+                temp_video_quality = video_quality2[exact_video_id]
+
                 writer.writerow([user_id, targeted_video[i], round(rating[i]*temp_preference*temp_video_quality if rating[i]*temp_preference*temp_video_quality <= 5 else 5, 3)])
 
             # per_end_time3 = time.time()

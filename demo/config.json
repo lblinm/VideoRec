@@ -1,20 +1,20 @@
 {
-    "Folders": {
-        "VideoTitle": [
-            "E:/project/rec/work_together/source/video_titles.csv"
-        ]
-    },
     "rec": {
-        "algorithm": "SVD CF",
+        "algorithm": "Contend based",
         "topk": 100,
-        "recUid": "1"
+        "recUid": "0"
     },
     "QFluentWidgets": {
         "ThemeColor": "#ff009faa",
         "ThemeMode": "Light"
     },
     "rating": {
-        "userNum": 5000,
+        "userNum": 1000,
         "videoPerPerson": 500
+    },
+    "Folders": {
+        "VideoTitle": [
+            "E:/project/rec/work_together/source/video_titles.csv"
+        ]
     }
 }

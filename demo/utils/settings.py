@@ -23,7 +23,7 @@ class Config(QConfig):
 
 
     # 评分矩阵的用户数量
-    userNum = RangeConfigItem("rating", "userNum", 10000, RangeValidator(5000,20000))
+    userNum = RangeConfigItem("rating", "userNum", 10000, RangeValidator(1000,20000))
 
     # 评分矩阵每用户观看视频
     videoPerPerson = RangeConfigItem("rating","videoPerPerson", 500, RangeValidator(500,2000))

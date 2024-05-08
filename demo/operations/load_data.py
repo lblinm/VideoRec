@@ -8,10 +8,11 @@ def load_data():
 	'''
 	DATA_PATH = os.environ.get('DATA_PATH')
 	ratings_path = DATA_PATH + '\\ratings.csv'
-	cache_path = DATA_PATH + '\\ratings.cache'
+	cache_path = DATA_PATH + '\\ratings.npz'
 	print("开始加载数据集...")
 	if os.path.exists(cache_path):
-		data_sparse = load_npz(data_sparse)
+		data_sparse = load_npz(cache_path)
+		print("从缓存文件中加载数据集完毕")
 	else:
 		dtype = {"uid": np.int32, "vid": np.int32, "rating": np.float64}
 		ratings = pd.read_csv(ratings_path,dtype=dtype, usecols=range(3))
@@ -21,6 +22,7 @@ def load_data():
 		col_array = ratings['vid']
 		data_sparse = coo_matrix((data_array, (row_array, col_array)),dtype=np.float64)
 		save_npz(cache_path, data_sparse)
+		print("读取视频标题数据集完毕")
 	return data_sparse
 
 

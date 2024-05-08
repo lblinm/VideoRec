@@ -19,6 +19,7 @@ WORKING_PATH = os.path.abspath(os.path.dirname(__file__))
 os.environ['WORKING_PATH'] = WORKING_PATH
 os.environ['IMAGE_PATH'] = WORKING_PATH + '\\resource\\image'
 os.environ['QSS_PATH'] = WORKING_PATH + '\\resource\\qss'
+os.environ['WORD_PATH'] = WORKING_PATH + '\\resource\\word'
 os.environ['DATA_PATH'] = WORKING_PATH + '\\data'
 
 
