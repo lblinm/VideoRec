@@ -8,8 +8,8 @@ class StyleSheet(StyleSheetBase, Enum):
   RECOMMEND_INTERFACE = "recommend_interface"
   CLUSTER_INTERFACE = "recommend_interface"
   PREDICT_INTERFACE = "recommend_interface"
-  
+  TAB_INTERFACE = "tab_interface"
+
   def path(self, theme=Theme.AUTO):
     theme = qconfig.theme if theme == Theme.AUTO else theme
     return os.environ.get('QSS_PATH')+f'\\{theme.value.lower()}\\{self.value}.qss'
-    #return f":/gallery/qss/{theme.value.lower()}/{self.value}.qss"

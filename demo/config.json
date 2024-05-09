@@ -2,7 +2,7 @@
     "rec": {
         "algorithm": "Contend based",
         "topk": 100,
-        "recUid": "55"
+        "recUid": "1"
     },
     "QFluentWidgets": {
         "ThemeColor": "#ff009faa",
