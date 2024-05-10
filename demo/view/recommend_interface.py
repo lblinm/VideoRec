@@ -32,19 +32,20 @@ class WorkThread1(QThread):
         self.topk = topk
         self.filepath = filepath
     def run(self):
-
-        ratings_matrix = load_data()
         res = []
         rec_table = []
         if self.recAlgorithm == 'User based CF':
+            ratings_matrix = load_data(matrix_kind=1)
             cf_user = CF_user(ratings_matrix, self.recUid, top_n=self.topk)
             cf_user.compute_person_similarity()
             res = cf_user.top_k_rs_result()
         elif self.recAlgorithm == 'SVD CF':
+            ratings_matrix = load_data(matrix_kind=0)
             svd = SVD(ratings_matrix, self.recUid,self.topk)
             svd.compute_svd()
             res = svd.predict_rating()
         elif self.recAlgorithm == 'Contend based':
+            ratings_matrix = load_data(matrix_kind=1)
             res = CB_recommend(self.filepath, ratings_matrix, self.recUid, self.topk)
         rec_table = find_video_title(self.filepath, res)
         self.finish_signal.emit(rec_table)  

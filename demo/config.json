@@ -1,6 +1,6 @@
 {
     "rec": {
-        "algorithm": "Contend based",
+        "algorithm": "SVD CF",
         "topk": 100,
         "recUid": "1"
     },

@@ -10,8 +10,7 @@ class CF_user():
 			self.rec_id = rec_id
 			self.top_n = top_n
 
-			self.rating_matrix = pd.DataFrame(rating_matrix.toarray())
-			self.rating_matrix.replace(0, np.nan, inplace=True)
+			self.rating_matrix = rating_matrix
 			
 
 		def compute_person_similarity(self):

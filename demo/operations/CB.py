@@ -67,15 +67,12 @@ def CB_user(ratings, users_profile_cache):
     pickle.dump(users_profile, file)
   print("用户画像创建完毕")
 
-def CB_recommend(titles_path,ratings_matrix, rec_uid, top_k):
+def CB_recommend(titles_path,ratings, rec_uid, top_k):
   # 缓存文件路径
   words_cache_path = os.environ.get("DATA_PATH") + "\\word_cache.pkl"
   inverted_table_cache = os.environ.get("DATA_PATH") + "\\reverted_table_cache.pkl"
   users_profile_cache = os.environ.get("DATA_PATH") + "\\users_profile_cache.pkl"
 
-  # 稀疏矩阵转DataFrame
-  ratings = pd.DataFrame(ratings_matrix.toarray())
-  ratings.replace(0, np.nan, inplace=True)
   # 加载数据
   users_profile = None
   inverted_table = None

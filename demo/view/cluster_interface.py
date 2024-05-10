@@ -18,6 +18,7 @@ import pyqtgraph as pg
 import random
 from utils.video_type import VIDEO_TYPE
 from operations.category import category
+from operations.load_data import load_data
 class ClusterInterface(ScrollArea):
     """ Setting interface """
 
@@ -201,8 +202,8 @@ class tabInterface(QWidget):
     def addUserActionCateTab(self):
         if self.userActionCateCheckBox.isChecked():
             self.drawUserActionCate = pg.PlotWidget(self)
-            x = [1,1]
-            y = [2,3]
+            ratings_matrix = load_data()
+            x, h = userActionCluster()
             self.drawUserActionCate.plot(x,y)
             self.addSubInterface(self.drawUserActionCate, 'userActionCate', '按用户行为', FIF.PENCIL_INK)
         else:
