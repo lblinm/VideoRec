@@ -14,3 +14,8 @@ TabInterface QLabel {
   border-left: 1px solid rgb(229, 229, 229);
   border-top-right-radius: 10px;
 }
+
+#clusterLabel {
+  font: 18px 'Segoe UI', 'Microsoft YaHei', 'PingFang SC';
+  color: black;
+}

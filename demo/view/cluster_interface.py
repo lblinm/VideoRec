@@ -1,5 +1,5 @@
 # coding:utf-8
-from qfluentwidgets import (SettingCardGroup,
+from qfluentwidgets import (SettingCardGroup,setFont,
                             OptionsSettingCard, PushSettingCard,
                             PrimaryPushSettingCard, ScrollArea,
                             ExpandLayout,RangeSettingCard,
@@ -7,7 +7,7 @@ from qfluentwidgets import (SettingCardGroup,
                             SpinBox,ComboBox,qrouter,TabCloseButtonDisplayMode)
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import InfoBar
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (QWidget, QLabel, QFileDialog, QTableWidgetItem,QHeaderView,
                              QStackedWidget, QVBoxLayout, QLabel, QHBoxLayout, QFrame, QSizePolicy)
 from components.file_list_setting_card import FileListSettingCard
@@ -19,6 +19,7 @@ import random
 from utils.video_type import VIDEO_TYPE
 from operations.category import category
 from operations.load_data import load_data
+from operations.userActionCluster import userActionCluster
 class ClusterInterface(ScrollArea):
     """ Setting interface """
 
@@ -29,16 +30,26 @@ class ClusterInterface(ScrollArea):
         self.expandLayout = ExpandLayout(self.scrollWidget)
 
         # label
-        self.recLabel = QLabel("视频聚类", self)
+        self.recLabel = QLabel("聚类分析", self)
         
-        self.clusterGroup = SettingCardGroup('聚类',self.scrollWidget)
+        # 视频聚类
+        self.clusterGroup = SettingCardGroup('视频、用户聚类',self.scrollWidget)
         self.videoTitleFolderCard = FileListSettingCard(
             cfg.videoTitleFiles,
             '视频数据集文件',
             parent=self.clusterGroup
         )
-        self.showClusterResult = tabInterface(self)
+        self.showClusterResult = tabInterface(self.clusterGroup)
+        self.showClusterResult.detailSignal.connect(self.resetTableView)
 
+        self.detailLabel = QLabel("详细信息", self)
+        setFont(self.detailLabel, 20)
+        self.detailLabel.adjustSize()
+        self.tableView = TableWidget(self.clusterGroup)
+        
+
+        self.__initTableView()
+        
         self.__initWidget()
 
     def __initWidget(self):
@@ -65,15 +76,47 @@ class ClusterInterface(ScrollArea):
         # add cards to group
         self.clusterGroup.addSettingCard(self.videoTitleFolderCard)
         self.clusterGroup.addSettingCard(self.showClusterResult)
+        self.clusterGroup.addSettingCard(self.detailLabel)
+        self.clusterGroup.addSettingCard(self.tableView)
+
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(36, 10, 36, 0)
         self.expandLayout.addWidget(self.clusterGroup)
         #self.expandLayout.addWidget(self.tableView)
 
- 
+    def __initTableView(self):
+        self.tableView.setBorderVisible(True)
+        self.tableView.setBorderRadius(8)
+        self.tableView.setWordWrap(False) #取消自动换行
+        self.tableView.setRowCount(5)
+        self.tableView.setColumnCount(3)
+        self.tableView.setHorizontalHeaderLabels(['横轴','说明','数量'])
+        # data = ['-1','这里什么也没有~']
+
+        # for j in range(2):
+        #     self.tableView.setItem(0, j, QTableWidgetItem(data[j]))
+                
+        self.tableView.verticalHeader().hide() # 隐藏垂直表头
+        #self.tableView.resizeColumnsToContents() #列自适应
+        self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.tableView.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        #self.tableView.setFixedSize()
+        self.tableView.adjustSize()
+        self.tableView.setObjectName("tableView")
+
+    def resetTableView(self,detailInfo:list):
+        row_count = len(detailInfo)
+        self.tableView.setRowCount(row_count)
+        for i in range(row_count):
+            for j in range(3):
+                item = QTableWidgetItem(detailInfo[i][j])
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.tableView.setItem(i, j, item)
+
 class tabInterface(QWidget):
     """ Tab interface """
+    detailSignal = pyqtSignal(list)
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.tabCount = 1
@@ -84,11 +127,15 @@ class tabInterface(QWidget):
         self.controlPanel = QFrame(self)
 
         self.existCateCheckBox = CheckBox("按已有类别",self)
-        self.userActionCateCheckBox = CheckBox("按用户行为",self)
+        self.userActionCateCheckBox = CheckBox("按相似用户群体",self)  
+        self.simiLikeCateCheckBox = CheckBox("按相似观看兴趣",self)
 
         self.hBoxLayout = QHBoxLayout(self)
         self.vBoxLayout = QVBoxLayout(self.tabView)
         self.panelLayout = QVBoxLayout(self.controlPanel)
+
+        self.videoClusterLabel = QLabel("视频聚类",self)
+        self.userClusterLabel = QLabel("用户聚类",self)
 
         # 绘图
         pg.setConfigOptions(leftButtonPan = False)
@@ -103,6 +150,8 @@ class tabInterface(QWidget):
         self.tabBar.setScrollable(True)
 
         self.controlPanel.setObjectName('controlPanel')
+        self.videoClusterLabel.setObjectName('clusterLabel')
+        self.userClusterLabel.setObjectName('clusterLabel')
         StyleSheet.TAB_INTERFACE.apply(self)
 
         self.connectSignalToSlot()
@@ -136,9 +185,12 @@ class tabInterface(QWidget):
         self.panelLayout.setContentsMargins(14, 16, 14, 14)
         self.panelLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
+        self.panelLayout.addWidget(self.videoClusterLabel)
         self.panelLayout.addWidget(self.existCateCheckBox)
         self.panelLayout.addWidget(self.userActionCateCheckBox)
-
+        self.panelLayout.addSpacing(4)
+        self.panelLayout.addWidget(self.userClusterLabel)
+        self.panelLayout.addWidget(self.simiLikeCateCheckBox)
         # self.panelLayout.addSpacing(4)
 
         # self.panelLayout.addSpacing(4)
@@ -188,7 +240,6 @@ class tabInterface(QWidget):
         self.stackedWidget.removeWidget(widget)
         self.tabBar.removeTab(index)
 
-
     def addExistCateTab(self):
         if self.existCateCheckBox.isChecked():
             self.drawExistCate = pg.PlotWidget(self)
@@ -196,15 +247,24 @@ class tabInterface(QWidget):
             barItem = pg.BarGraphItem(x=range(len(VIDEO_TYPE)),height=h, width = 0.5, brush=(0, 159, 170),pen=None)
             self.drawExistCate.addItem(barItem)
             self.addSubInterface(self.drawExistCate, 'existCate', '按已有类别', FIF.PENCIL_INK)
+            detailInfo = []
+            for i in range(len(h)):
+                detailInfo.append([str(i),VIDEO_TYPE[i],str(h[i])])
+            self.detailSignal.emit(detailInfo)
         else:
             self.tabBar.removeTabByKey('existCate')
     
     def addUserActionCateTab(self):
         if self.userActionCateCheckBox.isChecked():
-            self.drawUserActionCate = pg.PlotWidget(self)
-            ratings_matrix = load_data()
-            x, h = userActionCluster()
-            self.drawUserActionCate.plot(x,y)
-            self.addSubInterface(self.drawUserActionCate, 'userActionCate', '按用户行为', FIF.PENCIL_INK)
+            self.drawUserActionCluster = pg.PlotWidget(self)
+            ratings_matrix = load_data(matrix_kind=1)
+            x, h = userActionCluster(ratings_matrix)
+            barItem = pg.BarGraphItem(x=x, height=h,width = 0.5, brush=(0, 159, 170),pen=None)
+            self.drawUserActionCluster.addItem(barItem)
+            self.addSubInterface(self.drawUserActionCluster, 'userActionCate', '按相似用户群体', FIF.PENCIL_INK)
+            detailInfo = []
+            for i in range(len(x)):
+                detailInfo.append([str(x[i]),f'第{i}类',str(h[i])])
+            self.detailSignal.emit(detailInfo)
         else:
             self.tabBar.removeTabByKey('userActionCate')
