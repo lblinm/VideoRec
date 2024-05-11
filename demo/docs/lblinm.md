@@ -108,6 +108,7 @@ sh 全称是 Locality Sensitive Hashing（局部敏感哈希）。利用 And the
 Min-hash:属于 lsh 的一种，当两个向量能求 Jaccard 相似度时可用此方法。Jaccard 相似度=交集/并集。
 
 置换操作
+
 ```python
 def doSig(inputMatrix):
    seqSet = [i for i in range(inputMatrix.shape[0])]
@@ -125,3 +126,46 @@ def doSig(inputMatrix):
       seqSet.remove(randomSeq)
    return result
 ```
+
+## 基于内容的推荐
+
+计算物品最相似的其它物品列表，直接用于 I2I 相似推荐，或者 U2I2I 扩展推荐
+
+1. 内容获取：标题、类别
+2. 中文分词-提取关键字，工具：jieba 分词
+3. Word2Vec：Spark word2vec, 腾讯 word2vec
+4. Doc2Vec：平均、加权平均
+5. top-n 相似近邻搜索：scipy 余弦相似度、LSH 局部敏感哈希
+6. 缓存
+
+# 时序预测
+
+实现原理：传统统计学，机器学习（非深度学习、深度学习）
+预测步长：多步预测
+输入变量：自回归预测（输入变量维度只有时间和一维数据）
+输出结果：点预测（概率预测？）
+目标个数：一元时间序列预测
+
+## 传统时间序列预测方法
+
+### 1. ARIMA
+
+自回归综合移动平均 Auto-Regressive Integrated Moving Averages
+
+建立在此假设基础上：时间序列是平稳的
+
+平稳：时间序列均值没有系统的变化（无趋势）、方差没有系统变化，且严格消除了周期性变化
+
+通过对数变化或差分可以使序列平稳
+
+### 2. Holt-Winters
+
+一种(三次)指数平滑方法
+
+Holt-Winters 季节性方法包括预测方程和三个平滑方程：一个用于水平 ，一个用于趋势 ，另一个用于季节性分量。然后以累加或累乘的方式叠加分量组成预测
+
+### 3. Facebook Prophet
+
+基于时间序列分解和机器学习的拟合来做的
+
+适用于具有强烈季节性影响和多个季节历史数据的时间序列
