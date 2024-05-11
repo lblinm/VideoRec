@@ -1,12 +1,20 @@
 {
+    "predict": {
+        "algorithm": "ARIMA",
+        "vid": ""
+    },
     "rec": {
-        "algorithm": "SVD CF",
+        "algorithm": "Contend based",
         "topk": 100,
-        "recUid": "1"
+        "recUid": "100"
     },
     "QFluentWidgets": {
         "ThemeColor": "#ff009faa",
         "ThemeMode": "Light"
+    },
+    "cluster": {
+        "userClusterAlgorithm": "基于相似兴趣",
+        "videoClusterAlgorithm": "基于原有标签"
     },
     "rating": {
         "userNum": 2081,

@@ -2,15 +2,15 @@
 from qfluentwidgets import (SettingCardGroup,OptionsConfigItem,
                             OptionsSettingCard, PushSettingCard,
                             PrimaryPushSettingCard, ScrollArea,
-                            ExpandLayout,RangeSettingCard,
-                            TableWidget)
+                            ExpandLayout,RangeSettingCard)
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import InfoBar
 from PyQt6.QtCore import Qt,QThread,pyqtSignal
-from PyQt6.QtWidgets import QWidget, QLabel, QFileDialog, QTableWidgetItem,QHeaderView
+from PyQt6.QtWidgets import QWidget, QLabel
 
 from components.file_list_setting_card import FileListSettingCard
 from components.edit_setting_card import EditSettingCard
+from components.tabInterface import TabInterface
 from utils.style_sheet import StyleSheet
 from utils.settings import cfg
 import csv
@@ -25,12 +25,12 @@ from operations.CF_SVD import SVD
 from operations.CB import CB_recommend
 class WorkThread1(QThread):
     finish_signal = pyqtSignal(list)
-    def __init__(self, recAlgorithm, recUid, topk, filepath,parent=None):
+    def __init__(self, parent=None):
         super(WorkThread1, self).__init__(parent)
-        self.recAlgorithm = recAlgorithm
-        self.recUid = recUid
-        self.topk = topk
-        self.filepath = filepath
+        self.recAlgorithm = cfg.recChoose.value
+        self.recUid = int(cfg.recUid.value)
+        self.topk = cfg.recTopk.value
+        self.filepath = cfg.videoTitleFiles.value[0]
     def run(self):
         res = []
         rec_table = []
@@ -52,12 +52,12 @@ class WorkThread1(QThread):
         return
     
 class WorkThread2(QThread):
-    def __init__(self, tag_matrix, video_num, user_num, videos_watched_per_user, parent=None):
+    def __init__(self, video_num, parent=None):
         super(WorkThread2, self).__init__(parent)
-        self.tag_matrix = tag_matrix
+        self.tag_matrix = cfg.videoTitleFiles.value[0]
         self.video_num = video_num
-        self.user_num = user_num
-        self.videos_watched_per_user = videos_watched_per_user
+        self.user_num = cfg.userNum.value
+        self.videos_watched_per_user = cfg.videoPerPerson.value
     def run(self):
         generate_rating(self.tag_matrix, self.video_num, self.user_num, self.videos_watched_per_user)
 
@@ -66,17 +66,6 @@ class RecommendInterface(ScrollArea):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        # 算法参数
-        ## 文件
-        self.videoTitleFileFolder = cfg.videoTitleFiles.value #视频数据集文件夹
-        
-        ## 评分
-        self.userNum = cfg.userNum.value
-        self.videoPerPerson = cfg.videoPerPerson.value
-        ## 推荐
-        self.recAlgorithm = cfg.recChoose.value
-        self.recTopK = cfg.recTopk.value
-
 
         self.scrollWidget = QWidget()
         self.expandLayout = ExpandLayout(self.scrollWidget)
@@ -157,9 +146,7 @@ class RecommendInterface(ScrollArea):
             '为ta推荐',
             self.resGroup
         )
-        self.tableView = TableWidget(self.resGroup)
-        
-        self.__initTableView()
+        self.tabRecRes = TabInterface(self.resGroup)
 
         self.__initWidget()
 
@@ -198,7 +185,7 @@ class RecommendInterface(ScrollArea):
         
         self.resGroup.addSettingCard(self.topkSetting)
         self.resGroup.addSettingCard(self.okButton)
-        self.resGroup.addSettingCard(self.tableView)
+        self.resGroup.addSettingCard(self.tabRecRes)
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(36, 10, 36, 0)
@@ -207,27 +194,6 @@ class RecommendInterface(ScrollArea):
         self.expandLayout.addWidget(self.recGroup)
         self.expandLayout.addWidget(self.resGroup)
         
-        #self.expandLayout.addWidget(self.tableView)
-
-    def __initTableView(self):
-        self.tableView.setBorderVisible(True)
-        self.tableView.setBorderRadius(8)
-        self.tableView.setWordWrap(False) #取消自动换行
-        self.tableView.setRowCount(10)
-        self.tableView.setColumnCount(2)
-        self.tableView.setHorizontalHeaderLabels(['id','标题'])
-        data = ['-1','这里什么也没有~']
-
-        for j in range(2):
-            self.tableView.setItem(0, j, QTableWidgetItem(data[j]))
-                
-        self.tableView.verticalHeader().hide() # 隐藏垂直表头
-        #self.tableView.resizeColumnsToContents() #列自适应
-        self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.tableView.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        #self.tableView.setFixedSize()
-        self.tableView.adjustSize()
-        self.tableView.setObjectName("tableView")
 
     def __onVideoTitleFileFolderChange(self, lis:list):
         self.videoTitleFileFolder = lis
@@ -256,36 +222,15 @@ class RecommendInterface(ScrollArea):
             parent=self
         )
 
-
-    def __onRecUidChange(self, text:str):
-        self.recUid = int(text)
-
-    def __onTopKChange(self, k:int):
-        self.recTopK = k
-
-    def __onUserNumChange(self, i:int):
-        self.userNum = i
-
-    def __onVideoPerPersonChange(self, i:int):
-        self.videoPerPerson = i
-    
-    def __onRecChooseChange(self, cfgItem:OptionsConfigItem):
-        self.recAlgorithm = cfgItem.value
-
     def __connectSignalToSlot(self):
         """ connect signal to slot """
         # 文件 
         self.videoTitleFolderCard.fileChanged.connect(self.__onVideoTitleFileFolderChange)
 
         # 评分
-        self.userNumSetting.valueChanged.connect(self.__onUserNumChange)
-        self.videoPerPersonSetting.valueChanged.connect(self.__onVideoPerPersonChange)
         self.ratingButton.clicked.connect(self.__buildRatingMatrix)
+
         # 推荐
-        self.recChooseSetting.optionChanged.connect(self.__onRecChooseChange)
-        self.recUidSetting.valueChanged.connect(self.__onRecUidChange)
-        # 结果
-        self.topkSetting.valueChanged.connect(self.__onTopKChange)
         self.okButton.clicked.connect(self.__recommendStart)
         
 
@@ -298,33 +243,30 @@ class RecommendInterface(ScrollArea):
             for _ in csv_reader:
                 num_lines += 1
         # user_video_rating(self.userNum, num_lines, self.videoPerPerson)
-        self.th2 = WorkThread2(self.videoTitleFileFolder[0], num_lines, self.userNum, self.videoPerPerson)
+        self.th2 = WorkThread2(num_lines)
         # generate_rating(self.videoTitleFileFolder[0],num_lines, self.userNum, self.videoPerPerson)
         self.th2.start()
         self.th2.finished.connect(lambda: self.__showSucessTooltip("生成评分矩阵成功"))
 
     def __recommendStart(self):
-        if self.videoTitleFileFolder == []:
+        if cfg.videoTitleFiles.value == []:
             self.__showWarningTooltip('找不到视频标题数据集文件')
             return
-        if not hasattr(self,'recUid'):
+        if cfg.recUid.value == '':
             self.__showWarningTooltip('还未设置推荐用户的id')
             return
         if not os.path.exists(os.environ.get("DATA_PATH")+"\\ratings.csv"):
             self.__showWarningTooltip('还未生成评分矩阵')
             return
         self.__showWaitingTooltip("正在生成推荐结果")
-        self.th1 = WorkThread1(self.recAlgorithm,self.recUid, self.recTopK, self.videoTitleFileFolder[0])
+        self.th1 = WorkThread1() 
         self.th1.finish_signal.connect(self.__recommendFinish)
         self.th1.start()
 
     def __recommendFinish(self, rec_table:list):
-        row_count = len(rec_table) if rec_table else 0
-        self.tableView.setRowCount(row_count)
-        for i in range(row_count):
-            for j in range(2):
-                self.tableView.setItem(i, j, QTableWidgetItem(rec_table[i][j]))
-        self.__showSucessTooltip('生成推荐结果成功')
+        title = ['id','标题']
+        tabTitle = f'对用户{cfg.recUid.value}的推荐(使用{cfg.recChoose.value}算法)'
+        self.tabRecRes.addTableRes(title, rec_table, tabTitle)
         
         
         

@@ -30,7 +30,8 @@ class Config(QConfig):
 
     # 推荐算法选择
     recChoose = OptionsConfigItem(
-        "rec", "algorithm", "Userbased CF", OptionsValidator(["User based CF","Item based CF","SVD CF","Contend based"]))
+        "rec", "algorithm", "Userbased CF", OptionsValidator(["User based CF","Item based CF","SVD CF","Contend based"])
+    )
     
     # 推荐用户id选择
     recUid = ConfigItem(
@@ -39,6 +40,20 @@ class Config(QConfig):
     # topk排序
     recTopk = RangeConfigItem(
         "rec", "topk", 10, RangeValidator(10,100)
+    )
+    # 聚类
+    videoClusterAlgorithm = OptionsConfigItem(
+        "cluster", "videoClusterAlgorithm", "基于用户行为", OptionsValidator(["基于原有标签","基于用户行为"])
+    )
+    userClusterAlgorithm = OptionsConfigItem(
+        "cluster", "userClusterAlgorithm", "基于相似兴趣", OptionsValidator(["基于相似兴趣"])
+    )
+    # 预测vid
+    vidPre = ConfigItem(
+        "predict", "vid", 1, ConfigValidator()
+    )
+    predictAlgorithm = OptionsConfigItem(
+        "predict", "algorithm", "ARIMA", OptionsValidator(["ARIMA","Holt-Winters"])
     )
 
 cfg = Config()
