@@ -4,9 +4,9 @@
         "vid": ""
     },
     "rec": {
-        "algorithm": "Contend based",
+        "algorithm": "SVD CF",
         "topk": 100,
-        "recUid": "100"
+        "recUid": ""
     },
     "QFluentWidgets": {
         "ThemeColor": "#ff009faa",
@@ -17,7 +17,7 @@
         "videoClusterAlgorithm": "基于原有标签"
     },
     "rating": {
-        "userNum": 2081,
+        "userNum": 1000,
         "videoPerPerson": 500
     },
     "Folders": {

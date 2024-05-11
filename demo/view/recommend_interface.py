@@ -238,7 +238,7 @@ class RecommendInterface(ScrollArea):
         self.__showWaitingTooltip("正在生成评分矩阵，这可能需要几分钟，请耐心等候~")
         num_lines = -1
         # 获取视频总数
-        with open(self.videoTitleFileFolder[0],'r',newline='',encoding='utf-8-sig') as file:
+        with open(cfg.videoTitleFiles.value[0],'r',newline='',encoding='utf-8-sig') as file:
             csv_reader = csv.reader(file)
             for _ in csv_reader:
                 num_lines += 1

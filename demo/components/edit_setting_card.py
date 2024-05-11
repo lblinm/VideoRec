@@ -34,7 +34,7 @@ class EditSettingCard(SettingCard):
     super().__init__(icon, title, content, parent)
     self.configItem = configItem
     self.lineEdit = LineEdit(self)
-    
+    self.lineEdit.setText(configItem.value)
     self.hBoxLayout.addStretch(1)
     self.hBoxLayout.addSpacing(6)
     self.hBoxLayout.addWidget(self.lineEdit, 0, Qt.AlignmentFlag.AlignRight)
