@@ -101,15 +101,7 @@ class PredictInterface(ScrollArea):
     
     def predict(self):
         title = ['id','标题']
-        data = [['1','2614873627958v 34n3v8924732947'],
-                ['2','32433huhdkjfdsoiafjdsiofjdsioajf'],
-                ['1','2614873627958v 34n3v8924732947'],
-                ['2','32433huhdkjfdsoiafjdsiofjdsioajf'],
-                ['1','2614873627958v 34n3v8924732947'],
-                ['2','32433huhdkjfdsoiafjdsiofjdsioajf'],
-                ['1','2614873627958v 34n3v8924732947'],
-                ['2','32433huhdkjfdsoiafjdsiofjdsioajf'],
-                ]
-        tabTitle = "测试"
-        self.drawPredict.addTableRes(title, data, tabTitle)
+        x = [1,2,3,4,5,6,7,8,9,10]
+        y = [213,1232,324,23432,432432,43234,32432,32432,3243,32432]
+        self.drawPredict.addDrawRes(1, x, y, '测试')
  

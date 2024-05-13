@@ -130,5 +130,5 @@ class ClusterInterface(ScrollArea):
             x, h = userActionCluster(ratings_matrix)
             tabTitle = "基于用户行为的视频聚类结果"
             detail = None
-        self.drawVideoCluster.addDrawRes(x, h, tabTitle, detail)
+        self.drawVideoCluster.addDrawRes(0, x, h, tabTitle, detail)
 
