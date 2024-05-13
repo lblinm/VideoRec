@@ -6,7 +6,7 @@
     "rec": {
         "algorithm": "SVD CF",
         "topk": 100,
-        "recUid": ""
+        "recUid": "0"
     },
     "QFluentWidgets": {
         "ThemeColor": "#ff009faa",

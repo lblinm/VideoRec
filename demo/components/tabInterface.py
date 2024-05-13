@@ -1,4 +1,4 @@
-from qfluentwidgets import (TabBar,qrouter, FluentIcon as FIF, TableWidget)
+from qfluentwidgets import (TabBar,qrouter, FluentIcon as FIF, TableWidget,TextEdit)
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (QWidget, QLabel,QStackedWidget,QHeaderView,
                               QVBoxLayout, QLabel, QHBoxLayout, QFrame,
@@ -16,7 +16,6 @@ class TabInterface(QWidget):
         self.tabBar = TabBar(self)
         self.stackedWidget = QStackedWidget(self)
         self.tabView = QWidget(self)
-        self.controlPanel = QFrame(self)
 
         self.hBoxLayout = QHBoxLayout(self)
         self.vBoxLayout = QVBoxLayout(self.tabView)
@@ -32,7 +31,6 @@ class TabInterface(QWidget):
 
         self.tabBar.setScrollable(True)
 
-        self.controlPanel.setObjectName('controlPanel')
         StyleSheet.TAB_INTERFACE.apply(self)
 
         self.connectSignalToSlot()
@@ -51,7 +49,7 @@ class TabInterface(QWidget):
 
         self.setFixedHeight(280)
         self.hBoxLayout.addWidget(self.tabView, 1)
-        self.hBoxLayout.addWidget(self.controlPanel, 0, Qt.AlignmentFlag.AlignRight)
+
         self.hBoxLayout.setContentsMargins(0, 0, 0, 0)
 
         self.vBoxLayout.addWidget(self.tabBar)
@@ -70,9 +68,6 @@ class TabInterface(QWidget):
         )
         self.tabCount += 1
 
-    def onDisplayModeChanged(self, index):
-        mode = self.closeDisplayModeComboBox.itemData(index)
-        self.tabBar.setCloseButtonDisplayMode(mode)
 
     def onCurrentIndexChanged(self, index):
         widget = self.stackedWidget.widget(index)
@@ -94,7 +89,7 @@ class TabInterface(QWidget):
             '在隆冬，我终于知道，在我身上有一个不可战胜的夏天。——阿尔贝·加缪',
             '种一棵树最好的时间是十年前，其次是现在。——丹比萨·莫约',
         ]
-        self.addSubInterface(QLabel(random.choice(textPool)), text, text, FIF.UP)
+        self.addSubInterface(QLabel(random.choice(textPool)), text, text, FIF.EXPRESSIVE_INPUT_ENTRY)
 
     def removeTab(self, index):
         item = self.tabBar.tabItem(index)
@@ -104,7 +99,11 @@ class TabInterface(QWidget):
         self.tabBar.removeTab(index)
 
     
-    def addDrawRes(self,x:list, h:list, tabTitle:str):
+    def addDrawRes(self,x:list, h:list, tabTitle:str, detail:str = None):
+        widget = QWidget()
+        hBoxLayout = QHBoxLayout(widget)
+        
+        # 图表
         drawRes = pg.PlotWidget()
         name = f'drawRes{self.tabCount}'
         # 添加柱形
@@ -116,12 +115,23 @@ class TabInterface(QWidget):
             label.setAnchor((0.5,1))
             label.setPos(x[i], h[i])
             drawRes.addItem(label)
-        # 增加标签页
-        self.addSubInterface(drawRes, name, f'{tabTitle}{self.tabCount}', FIF.PENCIL_INK)
+        hBoxLayout.addWidget(drawRes, 0)
 
-    def addTableRes(self, title:list, data:list, tabTitle:str):
+        # 文本
+        if not detail is None:
+            textEdit = TextEdit()
+            textEdit.setMarkdown(detail)
+            textEdit.setFixedWidth(250)
+            hBoxLayout.addWidget(textEdit, 0, Qt.AlignmentFlag.AlignRight)
+        # 增加标签页
+        self.addSubInterface(widget, name, f'{tabTitle}{self.tabCount}', FIF.PENCIL_INK)
+
+    def addTableRes(self, title:list, data:list, tabTitle:str, detail:str = None):
+        widget = QWidget()
+        hBoxLayout = QHBoxLayout(widget)
         tableView = TableWidget()
 
+        # 表格
         tableView.setBorderRadius(8)
         tableView.setWordWrap(False)
         tableView.verticalHeader().show()
@@ -143,6 +153,15 @@ class TabInterface(QWidget):
         tableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         tableView.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
 
+        hBoxLayout.addWidget(tableView, 1)
         name = f'tableRes{self.tabCount}'
-        self.addSubInterface(tableView, name, f'{tabTitle}({self.tabCount})', FIF.LAYOUT)
+        
+        # 文本
+        if not detail is None:
+            textEdit = TextEdit()
+            textEdit.setMarkdown(detail)
+            textEdit.setFixedWidth(250)
+            hBoxLayout.addWidget(textEdit, 0, Qt.AlignmentFlag.AlignRight)
+
+        self.addSubInterface(widget, name, f'{tabTitle}({self.tabCount})', FIF.LAYOUT)
 
