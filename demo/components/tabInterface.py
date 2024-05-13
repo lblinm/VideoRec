@@ -99,21 +99,25 @@ class TabInterface(QWidget):
         self.tabBar.removeTab(index)
 
     
-    def addDrawRes(self,x:list, h:list, tabTitle:str, detail:str = None):
+    def addDrawRes(self,kind: int, x:list, y:list, tabTitle:str, detail:str = None):
         widget = QWidget()
         hBoxLayout = QHBoxLayout(widget)
         
         # 图表
         drawRes = pg.PlotWidget()
         name = f'drawRes{self.tabCount}'
-        # 添加柱形
-        barItem = pg.BarGraphItem(x=x, height=h, width=0.5, brush=(0, 159, 170),pen=None)
-        drawRes.addItem(barItem)
+        if kind == 0:
+            # 添加柱形
+            barItem = pg.BarGraphItem(x=x, height=y, width=0.5, brush=(0, 159, 170),pen=None)
+            drawRes.addItem(barItem)
+        elif kind == 1:
+            drawRes.plot(x, y, pen=(0, 159, 170), symbolBrush=(0, 159, 170))
+        
         # 添加数据标签
         for i in range(len(x)):
-            label = pg.TextItem(text=str(h[i]))
+            label = pg.TextItem(text=str(y[i]))
             label.setAnchor((0.5,1))
-            label.setPos(x[i], h[i])
+            label.setPos(x[i], y[i])
             drawRes.addItem(label)
         hBoxLayout.addWidget(drawRes, 0)
 
