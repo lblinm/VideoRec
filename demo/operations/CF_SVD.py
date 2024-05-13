@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import math as mt 
+import time
 from scipy.sparse.linalg import *
 from scipy.sparse.linalg import svds
 from scipy.sparse import csc_matrix, coo_matrix, save_npz, load_npz
@@ -14,6 +15,7 @@ class SVD():
     self.data_sparse = ratings_matrix
     self.userNum = self.data_sparse.shape[0]
     self.itemNum = self.data_sparse.shape[1]
+    self.st_time = time.time()
 
   def compute_svd(self):
     DATA_PATH = os.environ.get('DATA_PATH')
@@ -49,12 +51,23 @@ class SVD():
     
     
   def predict_rating(self):
+    '''
+    return: 1. 推荐结果（视频id）；2. 推荐结果指标
+    '''
     prod = self.U[self.rec_uid,:] * self.R
     prod_dense = prod.todense().A.flatten()
     sorted_indices = np.argsort(-prod_dense)
     res_list = list(zip(sorted_indices[:self.top_k], prod_dense[sorted_indices][:self.top_k]))
-    print("推荐结果:",res_list)
+
+    # print("推荐结果:",res_list)
+    
     rec_id = []
     for item in res_list:
       rec_id.append(item[0])
-    return rec_id
+    end_time = time.time()
+    
+    # 指标
+    # 耗时
+    t = round(end_time - self.st_time, 6)
+    indicators = {'time':t}
+    return rec_id, indicators

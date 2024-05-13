@@ -2,7 +2,8 @@
 from qfluentwidgets import (SettingCardGroup,OptionsConfigItem,
                             OptionsSettingCard, PushSettingCard,
                             PrimaryPushSettingCard, ScrollArea,
-                            ExpandLayout,RangeSettingCard)
+                            ExpandLayout,RangeSettingCard,
+                            ComboBoxSettingCard)
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import InfoBar
 from PyQt6.QtCore import Qt,QThread,pyqtSignal
@@ -15,6 +16,7 @@ from utils.style_sheet import StyleSheet
 from utils.settings import cfg
 import csv
 import os
+import time
 #================operations=================
 # from operations.user_video_rating import user_video_rating  #模拟生成评分矩阵
 from operations.generate_rating_scores import generate_rating
@@ -24,7 +26,7 @@ from operations.find_video_title import find_video_title
 from operations.CF_SVD import SVD
 from operations.CB import CB_recommend
 class WorkThread1(QThread):
-    finish_signal = pyqtSignal(list)
+    finish_signal = pyqtSignal(list, str)
     def __init__(self, parent=None):
         super(WorkThread1, self).__init__(parent)
         self.recAlgorithm = cfg.recChoose.value
@@ -34,6 +36,7 @@ class WorkThread1(QThread):
     def run(self):
         res = []
         rec_table = []
+        detail:str = None
         if self.recAlgorithm == 'User based CF':
             ratings_matrix = load_data(matrix_kind=1)
             cf_user = CF_user(ratings_matrix, self.recUid, top_n=self.topk)
@@ -43,12 +46,13 @@ class WorkThread1(QThread):
             ratings_matrix = load_data(matrix_kind=0)
             svd = SVD(ratings_matrix, self.recUid,self.topk)
             svd.compute_svd()
-            res = svd.predict_rating()
+            res, indicators = svd.predict_rating()
+            detail = f"### 详细信息\n1. 耗时: {indicators['time']}s\n 2. 精确率: \n3. 召回率: \n4. 综合指标: \n"
         elif self.recAlgorithm == 'Contend based':
             ratings_matrix = load_data(matrix_kind=1)
             res = CB_recommend(self.filepath, ratings_matrix, self.recUid, self.topk)
         rec_table = find_video_title(self.filepath, res)
-        self.finish_signal.emit(rec_table)  
+        self.finish_signal.emit(rec_table, detail)  
         return
     
 class WorkThread2(QThread):
@@ -112,7 +116,8 @@ class RecommendInterface(ScrollArea):
         # 推荐
         self.recGroup = SettingCardGroup(
             '推荐', self.scrollWidget)
-        self.recChooseSetting = OptionsSettingCard(
+        
+        self.recChooseSetting = ComboBoxSettingCard(
             cfg.recChoose,
             FIF.CALORIES,
             "推荐算法选择",
@@ -128,15 +133,12 @@ class RecommendInterface(ScrollArea):
             parent=self.recGroup
         )
         
-        self.resGroup = SettingCardGroup(
-            '结果',self.scrollWidget
-        )
         self.topkSetting = RangeSettingCard(
             cfg.recTopk,
             FIF.TILES,
             "Top-K",
             "选择推荐结果的前几个返回",
-            self.resGroup
+            self.recGroup
         )
         
         self.okButton = PrimaryPushSettingCard(
@@ -144,9 +146,9 @@ class RecommendInterface(ScrollArea):
             FIF.ACCEPT,
             '开始为ta推荐',
             '为ta推荐',
-            self.resGroup
+            self.recGroup
         )
-        self.tabRecRes = TabInterface(self.resGroup)
+        self.tabRecRes = TabInterface(self.recGroup)
 
         self.__initWidget()
 
@@ -182,18 +184,15 @@ class RecommendInterface(ScrollArea):
 
         self.recGroup.addSettingCard(self.recChooseSetting)
         self.recGroup.addSettingCard(self.recUidSetting)
-        
-        self.resGroup.addSettingCard(self.topkSetting)
-        self.resGroup.addSettingCard(self.okButton)
-        self.resGroup.addSettingCard(self.tabRecRes)
+        self.recGroup.addSettingCard(self.topkSetting)
+        self.recGroup.addSettingCard(self.okButton)
+        self.recGroup.addSettingCard(self.tabRecRes)
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(36, 10, 36, 0)
         self.expandLayout.addWidget(self.pathGroup)
         self.expandLayout.addWidget(self.ratingGroup)
         self.expandLayout.addWidget(self.recGroup)
-        self.expandLayout.addWidget(self.resGroup)
-        
 
     def __onVideoTitleFileFolderChange(self, lis:list):
         self.videoTitleFileFolder = lis
@@ -263,10 +262,10 @@ class RecommendInterface(ScrollArea):
         self.th1.finish_signal.connect(self.__recommendFinish)
         self.th1.start()
 
-    def __recommendFinish(self, rec_table:list):
+    def __recommendFinish(self, rec_table:list, detail:str = None):
         title = ['id','标题']
         tabTitle = f'对用户{cfg.recUid.value}的推荐(使用{cfg.recChoose.value}算法)'
-        self.tabRecRes.addTableRes(title, rec_table, tabTitle)
+        self.tabRecRes.addTableRes(title, rec_table, tabTitle, detail)
         
         
         

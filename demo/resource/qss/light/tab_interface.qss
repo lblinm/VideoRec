@@ -5,16 +5,6 @@ TabInterface QLabel {
   color: black;
 }
 
-#controlPanel BodyLabel {
-  padding-left: 0px;
-}
-
-#controlPanel {
-  background-color: white;
-  border-left: 1px solid rgb(229, 229, 229);
-  border-top-right-radius: 10px;
-}
-
 #clusterLabel {
   font: 16px 'Segoe UI', 'Microsoft YaHei', 'PingFang SC';
   color: black;

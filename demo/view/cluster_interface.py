@@ -122,9 +122,13 @@ class ClusterInterface(ScrollArea):
             h = category(cfg.videoTitleFiles.value[0])
             x = list(range(len(VIDEO_TYPE)))
             tabTitle = "基于原有标签的视频聚类结果"
+            detail = "### 详细信息 \n"
+            for i in range(len(x)):
+                detail += f'{i}. {VIDEO_TYPE[i]}: {h[i]}\n'
         if cfg.videoClusterAlgorithm.value == "基于用户行为":
             ratings_matrix = load_data(matrix_kind=1)
             x, h = userActionCluster(ratings_matrix)
             tabTitle = "基于用户行为的视频聚类结果"
-        self.drawVideoCluster.addDrawRes(x, h, tabTitle)
+            detail = None
+        self.drawVideoCluster.addDrawRes(x, h, tabTitle, detail)
 
