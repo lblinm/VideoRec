@@ -56,18 +56,26 @@ class SVD():
     '''
     prod = self.U[self.rec_uid,:] * self.R
     prod_dense = prod.todense().A.flatten()
-    sorted_indices = np.argsort(-prod_dense)
-    res_list = list(zip(sorted_indices[:self.top_k], prod_dense[sorted_indices][:self.top_k]))
 
-    # print("推荐结果:",res_list)
+    # 看过的减去1分
+    watched = self.data_sparse.getrow(0).indices
+    for i in watched:
+      prod_dense[i] -= 1.0
+
+    sorted_indices = np.argsort(-prod_dense)[:self.top_k]
+
+
+    # res_list = list(zip(sorted_indices[:self.top_k], prod_dense[sorted_indices][:self.top_k]))
+
+    # # print("推荐结果:",res_list)
     
-    rec_id = []
-    for item in res_list:
-      rec_id.append(item[0])
+    # rec_id = []
+    # for item in res_list:
+    #   rec_id.append(item[0])
+
     end_time = time.time()
-    
     # 指标
     # 耗时
     t = round(end_time - self.st_time, 6)
     indicators = {'time':t}
-    return rec_id, indicators
+    return sorted_indices, indicators

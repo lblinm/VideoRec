@@ -100,6 +100,14 @@ class TabInterface(QWidget):
 
     
     def addDrawRes(self,kind: int, x:list, y:list, tabTitle:str, detail:str = None):
+        '''
+        添加图标签页
+        parmas: kind=0或1, 0代表柱形图，1代表折线图
+        x: x轴
+        y: y轴
+        tabTitle: 标签页头文本
+        detail: (None)在旁边显示的详细信息，以markdown形式
+        '''
         widget = QWidget()
         hBoxLayout = QHBoxLayout(widget)
         

@@ -38,7 +38,7 @@ class CF_user():
 					self.item_similarity = pd.read_pickle(item_similarity_cache_path)
 				else:
 					print("开始计算物品相似度矩阵")
-					self.item_similarity = self.rating_matrix.corr  ()
+					self.item_similarity = self.rating_matrix.corr()
 					self.item_similarity.to_pickle(item_similarity_cache_path)
 			else:
 				raise Exception("Unhandle 'based' Value: %s"%self.based)
