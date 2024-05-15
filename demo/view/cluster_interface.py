@@ -1,9 +1,9 @@
 # coding:utf-8
 from qfluentwidgets import (SettingCardGroup,setFont, ScrollArea,
                             ExpandLayout,ComboBoxSettingCard,
-                            PrimaryPushSettingCard)
+                            PrimaryPushSettingCard, InfoBar)
 from qfluentwidgets import FluentIcon as FIF
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtWidgets import (QWidget, QLabel, QLabel)
 from components.file_list_setting_card import FileListSettingCard
 from components.tabInterface import TabInterface
@@ -13,7 +13,37 @@ from utils.video_type import VIDEO_TYPE
 from operations.category import category
 from operations.load_data import load_data
 from operations.userActionCluster import userActionCluster
+from operations.userCluster import userCluster
 
+class ThreadCluster(QThread):
+    finished_signal = pyqtSignal(int, list, list, str, str)
+    def __init__(self, videoOrUser:bool):
+        super().__init__()
+        self.videoOrUser = videoOrUser
+    def run(self):
+        x, y,tabTitle, detail = None, None, None, ''
+        if self.videoOrUser:
+            if cfg.videoClusterAlgorithm.value == "基于原有标签":
+                y = category(cfg.videoTitleFiles.value[0])
+                x = list(range(len(VIDEO_TYPE)))
+                tabTitle = "基于原有标签的视频聚类结果"
+                detail = "### 详细信息\n"
+                for i in range(len(x)):
+                    detail += f"{i}. {VIDEO_TYPE[i]}: {y[i]}\n"
+
+            elif cfg.videoClusterAlgorithm.value == "基于用户行为":
+                ratings_matrix = load_data(matrix_kind=1)
+                x, y, silhouette = userActionCluster(ratings_matrix)
+                tabTitle = "基于用户行为的视频聚类结果"
+                detail = f"### 详细信息\n轮廓系数: {round(silhouette, 3)}"
+        else:
+            if cfg.userClusterAlgorithm.value == "基于相似兴趣":
+                ratings_matrix = load_data(matrix_kind=1) 
+                x, y, silhouette = userCluster(ratings_matrix)
+                tabTitle = "基于相似用户的用户聚类结果"
+                detail = f"### 详细信息\n轮廓系数: {round(silhouette, 3)}"
+        self.finished_signal.emit(0, x, y, tabTitle, detail)
+        
 class ClusterInterface(ScrollArea):
     """ Setting interface """
 
@@ -30,6 +60,11 @@ class ClusterInterface(ScrollArea):
         self.videoTitleFolderCard = FileListSettingCard(
             cfg.videoTitleFiles,
             '视频数据集文件',
+            parent=self.dataGroup
+        )
+        self.ratingFolderCard = FileListSettingCard(
+            cfg.ratingPath,
+            "用户-视频评分矩阵数据集文件(可模拟生成)",
             parent=self.dataGroup
         )
 
@@ -97,6 +132,7 @@ class ClusterInterface(ScrollArea):
         # add cards to group
         # 数据集
         self.dataGroup.addSettingCard(self.videoTitleFolderCard)
+        self.dataGroup.addSettingCard(self.ratingFolderCard)
         # 视频聚类
         self.videoClusterGroup.addSettingCard(self.videoClusterAlgorithm)
         self.videoClusterGroup.addSettingCard(self.videoClusterButton)
@@ -115,20 +151,35 @@ class ClusterInterface(ScrollArea):
         self.expandLayout.addWidget(self.userClusterGroup)
 
     def __connectSignalToSlot(self):
-        self.videoClusterButton.clicked.connect(self.videoCluster)
+        self.videoClusterButton.clicked.connect(self.startVideoCluster)
+        self.userClusterButton.clicked.connect(self.startUserCluster)
 
-    def videoCluster(self):
-        if cfg.videoClusterAlgorithm.value == "基于原有标签":
-            h = category(cfg.videoTitleFiles.value[0])
-            x = list(range(len(VIDEO_TYPE)))
-            tabTitle = "基于原有标签的视频聚类结果"
-            detail = "### 详细信息 \n"
-            for i in range(len(x)):
-                detail += f'{i}. {VIDEO_TYPE[i]}: {h[i]}\n'
-        if cfg.videoClusterAlgorithm.value == "基于用户行为":
-            ratings_matrix = load_data(matrix_kind=1)
-            x, h = userActionCluster(ratings_matrix)
-            tabTitle = "基于用户行为的视频聚类结果"
-            detail = None
-        self.drawVideoCluster.addDrawRes(0, x, h, tabTitle, detail)
+    def __showWaitingTooltip(self, s:str):
+        InfoBar.info(
+            '稍等',
+            s,
+            duration=1500,
+            parent=self
+        )
+    def __showSucessTooltip(self, s:str):
+        InfoBar.success(
+            '成功',
+            s,
+            duration=1500,
+            parent=self
+        )
 
+    def startVideoCluster(self):
+        self.__showWaitingTooltip("正在生成视频聚类结果")
+        self.threadVideoCluster = ThreadCluster(True)
+        self.threadVideoCluster.finished_signal.connect(self.drawVideoCluster.addDrawRes)
+        self.threadVideoCluster.finished_signal.connect(lambda: self.__showSucessTooltip("视频聚类成功"))
+        self.threadVideoCluster.start()
+    
+    def startUserCluster(self):
+        self.__showWaitingTooltip("正在生成用户聚类结果")
+        self.threadUserCluster = ThreadCluster(False)
+        self.threadUserCluster.finished_signal.connect(self.drawUserCluster.addDrawRes)
+        self.threadUserCluster.finished_signal.connect(lambda: self.__showSucessTooltip("用户聚类成功"))
+        self.threadUserCluster.start()
+    
