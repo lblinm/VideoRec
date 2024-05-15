@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
-
+import time 
 #相似度计算
 class CF_user():
 		def __init__(self, rating_matrix, rec_id,based="user", top_n=10):
@@ -11,7 +11,6 @@ class CF_user():
 			self.top_n = top_n
 
 			self.rating_matrix = rating_matrix
-			
 
 		def compute_person_similarity(self):
 			'''
@@ -61,7 +60,12 @@ class CF_user():
 				raise Exception("用户<%d>没有相似的用户！"%self.rec_id)
 			# 2-从uid用户的近邻相似用户中筛选出对iid物品有评分记录的近邻用户
 			item_ids = self.rating_matrix.columns
+			# 过滤掉用户已观看视频
+			watched_videos = self.rating_matrix.columns[self.rating_matrix.iloc[self.rec_id].notna()]
+			
 			for iid in item_ids:
+				if iid in watched_videos:
+					continue
 				ids = set(self.rating_matrix[iid].dropna().index)&set(similar_users.index)
 				finally_similar_users = similar_users.loc[list(ids)] 
 				# 3-结合uid用户与其近邻用户的相似度预测uid用户对iid物品的评分
@@ -79,9 +83,19 @@ class CF_user():
 				#计算预测的评分值并返回，此处改动，当sum_down为0时predict_rating=0
 				if sum_down != 0:
 					predict_rating = sum_up / sum_down
-					yield iid, round(predict_rating, 2)
+					yield iid, predict_rating
+
 		#基于物品相似度的评分预测
-					
+		def predict_item(self, uid, iid):
+			# 1. 找出iid物品的相似物品
+			similar_items = self.item_similarity[iid].drop([iid]).dropna
+			# 相似物品筛选规则：正相关的物品
+			similar_items = similar_items.where(similar_items>0).dropna()
+			if similar_items.empty is True:
+				raise Exception(f"物品<{iid}>没有相似的物品")
+			
+			# 2. 从iid物品的近邻物品中筛选出uid用户评分过的物品
+			
 		# 根据预测评分为指定用户进行top—N推荐
 		def top_k_rs_result(self):
 			'''
@@ -89,7 +103,7 @@ class CF_user():
 			return: 对某用户的推荐结果，形式是二元组(int,float)的列表
 			'''
 			if self.based == "user":
-				pre_all = self.predict_user()
+				pre_all = list(self.predict_user())
 			res = sorted(pre_all, key=lambda x: x[1], reverse=True)[:self.top_n]
 			print("对用户<%d>推荐的vid: "%(self.rec_id), res)
 			res_id = []

@@ -36,7 +36,7 @@ class WorkThread1(QThread):
     def run(self):
         res = []
         rec_table = []
-        detail:str = None
+        detail = ''
         if self.recAlgorithm == 'User based CF':
             ratings_matrix = load_data(matrix_kind=1)
             cf_user = CF_user(ratings_matrix, self.recUid, top_n=self.topk)
@@ -79,18 +79,22 @@ class RecommendInterface(ScrollArea):
 
         # 文件
         self.pathGroup = SettingCardGroup(
-            '文件', self.scrollWidget)
+            '数据集', self.scrollWidget)
         self.videoTitleFolderCard = FileListSettingCard(
             cfg.videoTitleFiles,
             '视频数据集文件',
             parent=self.pathGroup
         )
-        
+        self.ratingFolderCard = FileListSettingCard(
+            cfg.ratingPath,
+            '用户-视频评分矩阵数据集文件(可模拟生成)',
+            parent=self.pathGroup
+        )
 
 
         # 评分
         self.ratingGroup = SettingCardGroup(
-            '评分', self.scrollWidget)
+            '评分生成', self.scrollWidget)
       
         self.userNumSetting = RangeSettingCard(
             cfg.userNum,
@@ -122,7 +126,7 @@ class RecommendInterface(ScrollArea):
             FIF.CALORIES,
             "推荐算法选择",
             "以哪一种算法做短视频推荐",
-            texts=["User based CF","Item based CF","SVD CF","Content based"],
+            texts=["User based CF","SVD CF","Content based"],
             parent=self.recGroup
         )
         self.recUidSetting = EditSettingCard(
@@ -176,7 +180,7 @@ class RecommendInterface(ScrollArea):
 
         # add cards to group
         self.pathGroup.addSettingCard(self.videoTitleFolderCard)
-
+        self.pathGroup.addSettingCard(self.ratingFolderCard)
 
         self.ratingGroup.addSettingCard(self.userNumSetting)
         self.ratingGroup.addSettingCard(self.videoPerPersonSetting)
@@ -246,6 +250,9 @@ class RecommendInterface(ScrollArea):
         # generate_rating(self.videoTitleFileFolder[0],num_lines, self.userNum, self.videoPerPerson)
         self.th2.start()
         self.th2.finished.connect(lambda: self.__showSucessTooltip("生成评分矩阵成功"))
+        rating_path = os.environ.get("DATA_PATH") + "\\ratings.csv"
+        self.ratingFolderCard.addFileItem(rating_path)
+        cfg.set(cfg.ratingPath, [rating_path])
 
     def __recommendStart(self):
         if cfg.videoTitleFiles.value == []:

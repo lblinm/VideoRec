@@ -88,6 +88,8 @@ class TabInterface(QWidget):
             '一个人知道自己为什么而活，就可以忍受任何一种生活。——尼采',
             '在隆冬，我终于知道，在我身上有一个不可战胜的夏天。——阿尔贝·加缪',
             '种一棵树最好的时间是十年前，其次是现在。——丹比萨·莫约',
+            '工作不算争取价值，是劳动换取酬劳，工作的时候偷闲才是为自己争取价值。——青雀',
+            '筑城者为我们砌成堡垒，使我们远离风雪，但我们必须铭记，风雪从未消失。——布洛妮娅',
         ]
         self.addSubInterface(QLabel(random.choice(textPool)), text, text, FIF.EXPRESSIVE_INPUT_ENTRY)
 
@@ -99,7 +101,7 @@ class TabInterface(QWidget):
         self.tabBar.removeTab(index)
 
     
-    def addDrawRes(self,kind: int, x:list, y:list, tabTitle:str, detail:str = None):
+    def addDrawRes(self,kind: int, x:list, y:list, tabTitle:str, detail:str = ''):
         '''
         添加图标签页
         parmas: kind=0或1, 0代表柱形图，1代表折线图
@@ -130,7 +132,7 @@ class TabInterface(QWidget):
         hBoxLayout.addWidget(drawRes, 0)
 
         # 文本
-        if not detail is None:
+        if detail != '':
             textEdit = TextEdit()
             textEdit.setMarkdown(detail)
             textEdit.setFixedWidth(250)
@@ -138,7 +140,7 @@ class TabInterface(QWidget):
         # 增加标签页
         self.addSubInterface(widget, name, f'{tabTitle}{self.tabCount}', FIF.PENCIL_INK)
 
-    def addTableRes(self, title:list, data:list, tabTitle:str, detail:str = None):
+    def addTableRes(self, title:list, data:list, tabTitle:str, detail:str = ''):
         widget = QWidget()
         hBoxLayout = QHBoxLayout(widget)
         tableView = TableWidget()
@@ -169,7 +171,7 @@ class TabInterface(QWidget):
         name = f'tableRes{self.tabCount}'
         
         # 文本
-        if not detail is None:
+        if detail != '':
             textEdit = TextEdit()
             textEdit.setMarkdown(detail)
             textEdit.setFixedWidth(250)
