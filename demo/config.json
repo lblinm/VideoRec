@@ -1,10 +1,22 @@
 {
     "predict": {
         "algorithm": "ARIMA",
+        "days": 30,
         "vid": ""
     },
+    "Folders": {
+        "ratingPath": [
+            "E:\\project\\rec\\work_together\\demo\\data\\ratings.csv"
+        ],
+        "timeSeriesPath": [
+            "E:\\project\\rec\\work_together\\demo\\data\\time_series.csv"
+        ],
+        "VideoTitle": [
+            "E:/project/rec/work_together/source/video_titles.csv"
+        ]
+    },
     "rec": {
-        "algorithm": "SVD CF",
+        "algorithm": "User based CF",
         "topk": 100,
         "recUid": "1"
     },
@@ -14,15 +26,10 @@
     },
     "cluster": {
         "userClusterAlgorithm": "基于相似兴趣",
-        "videoClusterAlgorithm": "基于原有标签"
+        "videoClusterAlgorithm": "基于用户行为"
     },
     "rating": {
         "userNum": 1000,
         "videoPerPerson": 500
-    },
-    "Folders": {
-        "VideoTitle": [
-            "E:/project/rec/work_together/source/video_titles.csv"
-        ]
     }
 }

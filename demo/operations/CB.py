@@ -99,12 +99,12 @@ def CB_recommend(titles_path,ratings, rec_uid, top_k):
       else:
         candidate[vid] = weight_user * weight_video
   # 用户评分过的视频
-  # watched_videos = ratings.columns[ratings.iloc[rec_uid].notna()]
-  # candidate = sorted(candidate.items(), key=lambda x:x[1], reverse=True)
-  # candidate_filter = [(vid, weight) for vid, weight in candidate if vid not in watched_videos][:top_k]
+  watched_videos = ratings.columns[ratings.iloc[rec_uid].notna()]
+  candidate = sorted(candidate.items(), key=lambda x:x[1], reverse=True)
+  candidate_filter = [(vid, weight) for vid, weight in candidate if vid not in watched_videos][:top_k]
 
-  candidate = sorted(candidate.items(), key=lambda x: x[1], reverse=True)[:100]
-  print("推荐结果：", candidate)
+  #candidate = sorted(candidate.items(), key=lambda x: x[1], reverse=True)[:100]
+  #print("推荐结果：", candidate)
   rec_id = []
   for item in candidate:
     rec_id.append(item[0])

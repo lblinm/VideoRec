@@ -80,7 +80,7 @@ class FileListSettingCard(ExpandSettingCard):
         self.viewLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.viewLayout.setContentsMargins(0, 0, 0, 0)
         for file in self.files:
-            self.__addFileItem(file)
+            self.addFileItem(file)
 
         self.addfileButton.clicked.connect(self.__showfileDialog)
 
@@ -92,12 +92,12 @@ class FileListSettingCard(ExpandSettingCard):
         if not file or file in self.files:
             return
 
-        self.__addFileItem(file)
+        self.addFileItem(file)
         self.files.append(file)
         qconfig.set(self.configItem, self.files)
         self.fileChanged.emit(self.files)
 
-    def __addFileItem(self, file):
+    def addFileItem(self, file):
         """ add file item """
         item = fileItem(file, self.view)
         item.removed.connect(self.__showConfirmDialog)
