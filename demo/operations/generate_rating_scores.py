@@ -114,7 +114,7 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
     minimal_unit = 12  # minimal_unit最视频组中每组的四分之一，初始为12
     for i in [44, 40, 36, 32, 28, 24, 20, 16, 12]:
         if video_num / i < user_per_group:
-            minimal_unit = i / 4
+            minimal_unit = int(i / 4)
             continue
         else:
             break

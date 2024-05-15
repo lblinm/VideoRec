@@ -12,7 +12,7 @@ def createUserPreferenceMatrix(num_users, num_categories):
     :return: 在指定路径下的一个名为"user_preference_matrix.csv"的csv文件，其中包含随机生成的，用户对视频的偏好
     """
     # start_time = time.time()
-    preference_slot = [1.2, 1.2, 1.1, 1.1, 1, 1, 1, 1, 1, 0.9, 0.9, 0.8, 0.8]
+    preference_slot = [1.2, 1.2, 1.1, 1.1, 1.1, 1, 1, 1, 1, 1, 0.9, 0.9, 0.8, 0.8]
 
     user_preference_csv = os.environ.get('DATA_PATH') + "\\user_preference_matrix.csv"
     with open(user_preference_csv, 'w', newline='') as file:
