@@ -24,18 +24,17 @@ class ThreadGenerateTimeSeries(QThread):
         generate_time_series(self.file_path)
 
 class ThreadPredict(QThread):
-    finishedSignal = pyqtSignal(int, list, list, str, str, bool)
+    finishedSignal = pyqtSignal(int, list, list, str, str, bool, list, list)
     def __init__(self):
         super().__init__()
         self.timeSeriesPath = cfg.timeSeriesPath.value[0]
         self.vidPre = cfg.vidPre.value
         self.predictDays = cfg.predictDays.value
     def run(self):
-        y =  arima_forecast(self.timeSeriesPath, self.vidPre, self.predictDays)
-        # x = list(range(1, 31))
-        x = list(range(1, 30+ self.predictDays+1))
+        x, y, x1, y1 =  arima_forecast(self.timeSeriesPath, self.vidPre, self.predictDays)
+        detail = "### 详细信息\n\n#### 图例\n1. <font color=#009FAA>——</font>: 历史播放量\n2. <font color=#F29500>——</font>: 预测播放量趋势\n#### 说明\nARIMA的预测结果反映出数据的总体变化趋势，对未来值的预测范围较为集中"
         tabTitle = f"视频{self.vidPre}的历史播放量和预测结果"
-        self.finishedSignal.emit(1, x, y, tabTitle, '', True)
+        self.finishedSignal.emit(1, x, y, tabTitle, detail, True, x1, y1)
     
 class PredictInterface(ScrollArea):
     """ Setting interface """

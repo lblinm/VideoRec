@@ -14,7 +14,7 @@ def arima_forecast(time_series_path,vid,step):
     # 从CSV文件中读取数据
     data_row = pd.read_csv(time_series_path, skiprows = int(vid) + 1, nrows=1,header=None,index_col=0)
     data = data_row.values.flatten()
-
+    
     time_index = pd.date_range('2024-01-01', periods=len(data))
     ts = pd.Series(data, index=time_index)
     
@@ -73,5 +73,9 @@ def arima_forecast(time_series_path,vid,step):
     forecast = result.forecast(step)
     rounded_forecast = forecast.round(3)
 
-    predict =  list(data) + rounded_forecast.values.tolist()
-    return  predict # list(data), rounded_forecast.values.tolist()
+    x = list(range(1, len(data)+1))
+    x1 = list(range(30, 30 + step +1))
+    y = list(data)
+    y1 = rounded_forecast.values.tolist()
+    y1.insert(0, y[-1])
+    return  x, y, x1, y1
