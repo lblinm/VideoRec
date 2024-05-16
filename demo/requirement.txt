@@ -5,3 +5,4 @@ PyQt6-Fluent-Widgets -i https://pypi.org/simple/
 jieba
 gensim
 scikit-learn
+statsmodels

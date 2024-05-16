@@ -1,8 +1,8 @@
 {
     "predict": {
         "algorithm": "ARIMA",
-        "days": 30,
-        "vid": ""
+        "days": 10,
+        "vid": "2"
     },
     "Folders": {
         "ratingPath": [
@@ -16,7 +16,7 @@
         ]
     },
     "rec": {
-        "algorithm": "User based CF",
+        "algorithm": "SVD CF",
         "topk": 100,
         "recUid": "1"
     },
