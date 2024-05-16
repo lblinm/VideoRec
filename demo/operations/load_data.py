@@ -10,12 +10,12 @@ def load_data(matrix_kind: int):
 	'''
 	DATA_PATH = os.environ.get('DATA_PATH')
 	ratings_path = DATA_PATH + '\\ratings.csv'
-	print("开始加载数据集...")
+	#print("开始加载数据集...")
 	if matrix_kind == 0:
 		cache_path = DATA_PATH + '\\ratings.npz'
 		if os.path.exists(cache_path):
 			data_sparse = load_npz(cache_path)
-			print("从缓存文件中加载评分矩阵为稀疏矩阵完毕")
+			#print("从缓存文件中加载评分矩阵为稀疏矩阵完毕")
 		else:
 			dtype = {"uid": np.int32, "vid": np.int32, "rating": np.float64}
 			ratings = pd.read_csv(ratings_path,dtype=dtype, usecols=range(3))
@@ -25,18 +25,18 @@ def load_data(matrix_kind: int):
 			col_array = ratings['vid']
 			data_sparse = coo_matrix((data_array, (row_array, col_array)),dtype=np.float64)
 			save_npz(cache_path, data_sparse)
-			print("读取评分文件为稀疏矩阵完毕")
+			#print("读取评分文件为稀疏矩阵完毕")
 		return data_sparse
 	elif matrix_kind == 1:
 		cache_path = DATA_PATH + '\\ratings.pkl'
 		if os.path.exists(cache_path):
 			ratings_matrix = pd.read_pickle(cache_path)
-			print("从缓存文件中加载评分矩阵为dataframe完毕")
+			#print("从缓存文件中加载评分矩阵为dataframe完毕")
 		else:
 			ratings = pd.read_csv(ratings_path)
 			ratings_matrix = ratings.pivot_table(index=['uid'], columns=['vid'], values='rating')
 			ratings_matrix.to_pickle(cache_path)
-			print("读取评分文件为dataframe完毕")
+			#print("读取评分文件为dataframe完毕")
 		return ratings_matrix
 	# if os.path.exists(cache_path):
 	#     print("加载缓存中...")

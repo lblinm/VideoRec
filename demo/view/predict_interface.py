@@ -1,7 +1,8 @@
 # coding:utf-8
 from qfluentwidgets import (SettingCardGroup,ScrollArea,
                             ExpandLayout,PrimaryPushSettingCard,
-                            ComboBoxSettingCard, RangeSettingCard)
+                            ComboBoxSettingCard, RangeSettingCard,
+                            IndeterminateProgressBar)
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import InfoBar
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
@@ -46,6 +47,8 @@ class PredictInterface(ScrollArea):
 
         # label
         self.recLabel = QLabel("热度预测", self)
+        
+        self.bar = IndeterminateProgressBar(self, start=False)
         
         # 数据集
         self.dataGroup = SettingCardGroup('数据集',self.scrollWidget)
@@ -101,7 +104,7 @@ class PredictInterface(ScrollArea):
         self.__initWidget()
 
     def __initWidget(self):
-        self.resize(1000, 800)
+        self.resize(800, 600)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 80, 0, 20)
         self.setWidget(self.scrollWidget)
@@ -112,6 +115,8 @@ class PredictInterface(ScrollArea):
         self.scrollWidget.setObjectName('scrollWidget')
         self.recLabel.setObjectName('recLabel')
 
+        self.bar.resize(self.width(), self.bar.height())
+        
         self.__initLayout()
         StyleSheet.PREDICT_INTERFACE.apply(self)
 
@@ -120,7 +125,7 @@ class PredictInterface(ScrollArea):
 
     def __initLayout(self):
         self.recLabel.move(36, 30)
-
+        self.bar.move(0,0)
         # add cards to group
         self.dataGroup.addSettingCard(self.videoTitleFolderCard)
         self.dataGroup.addSettingCard(self.predictFolderCard)
@@ -159,16 +164,20 @@ class PredictInterface(ScrollArea):
         )
     def startGenerateTimeSeries(self):
         self.__showWaitingTooltip('正在生成视频播放量时间序列数据集')
+        self.bar.start()
         self.threadGenerateTimeSeries = ThreadGenerateTimeSeries()
         self.threadGenerateTimeSeries.start()
         self.threadGenerateTimeSeries.finished.connect(lambda: self.__showSucessTooltip('已生成播放量时间序列数据集'))
+        self.threadGenerateTimeSeries.finished.connect(self.bar.stop)
         
         time_series_path = os.environ.get('DATA_PATH')+'\\time_series.csv'
         cfg.set(cfg.timeSeriesPath, [time_series_path])
         
     def startPredict(self):
         self.__showWaitingTooltip('正在预测视频未来播放量')
+        self.bar.start()
         self.threadPredict = ThreadPredict()
         self.threadPredict.finishedSignal.connect(self.drawPredict.addDrawRes)
         self.threadPredict.finished.connect(lambda: self.__showSucessTooltip('已生成预测播放量'))
+        self.threadPredict.finished.connect(self.bar.stop)
         self.threadPredict.start()

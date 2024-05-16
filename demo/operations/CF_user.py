@@ -1,7 +1,6 @@
 import os
 import pandas as pd
-import numpy as np
-import time 
+
 #相似度计算
 class CF_user():
 		def __init__(self, rating_matrix, rec_id,based="user", top_n=10):
@@ -25,23 +24,23 @@ class CF_user():
 			#基于皮尔逊相关系数计算相似度
 			if self.based == "user":
 				if os.path.exists(user_similarity_cache_path):
-					print("正从缓存加载用户相似度矩阵")
+					#print("正从缓存加载用户相似度矩阵")
 					self.user_similarity = pd.read_pickle(user_similarity_cache_path)
 				else:
-					print("开始计算用户相似度矩阵")
+					#print("开始计算用户相似度矩阵")
 					self.user_similarity = self.rating_matrix.T.corr() #转置后运算
 					self.user_similarity.to_pickle(user_similarity_cache_path)
 			elif self.based == "item":
 				if os.path.exists(item_similarity_cache_path):
-					print("正从缓存加载物品相似度矩阵")
+					#print("正从缓存加载物品相似度矩阵")
 					self.item_similarity = pd.read_pickle(item_similarity_cache_path)
 				else:
-					print("开始计算物品相似度矩阵")
+					#print("开始计算物品相似度矩阵")
 					self.item_similarity = self.rating_matrix.corr()
 					self.item_similarity.to_pickle(item_similarity_cache_path)
 			else:
 				raise Exception("Unhandle 'based' Value: %s"%self.based)
-			print("相似度矩阵计算/加载完毕")
+			#print("相似度矩阵计算/加载完毕")
 
 		#基于用户相似度的评分预测
 		def predict_user(self):
@@ -105,7 +104,7 @@ class CF_user():
 			if self.based == "user":
 				pre_all = list(self.predict_user())
 			res = sorted(pre_all, key=lambda x: x[1], reverse=True)[:self.top_n]
-			print("对用户<%d>推荐的vid: "%(self.rec_id), res)
+			#print("对用户<%d>推荐的vid: "%(self.rec_id), res)
 			res_id = []
 			for item in res:
 				res_id.append(item[0])

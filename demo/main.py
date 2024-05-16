@@ -1,10 +1,10 @@
 import sys
 import os
-from PyQt6.QtCore import Qt,QSize,QEventLoop,QTimer
+from PyQt6.QtCore import QSize
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QIcon
 from qfluentwidgets import (
-  FluentWindow, FluentIcon as FIF, setTheme,Theme,NavigationAvatarWidget,
+  FluentWindow, FluentIcon as FIF, setTheme,Theme,
     NavigationItemPosition,SplashScreen
 )
 #from view.recommend import Recommend

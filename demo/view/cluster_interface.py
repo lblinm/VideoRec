@@ -1,7 +1,8 @@
 # coding:utf-8
-from qfluentwidgets import (SettingCardGroup,setFont, ScrollArea,
+from qfluentwidgets import (SettingCardGroup, ScrollArea,
                             ExpandLayout,ComboBoxSettingCard,
-                            PrimaryPushSettingCard, InfoBar)
+                            PrimaryPushSettingCard, InfoBar,
+                            IndeterminateProgressBar)
 from qfluentwidgets import FluentIcon as FIF
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtWidgets import (QWidget, QLabel, QLabel)
@@ -54,6 +55,7 @@ class ClusterInterface(ScrollArea):
         self.expandLayout = ExpandLayout(self.scrollWidget)
 
         # label
+        self.bar = IndeterminateProgressBar(self, start=False)
         self.recLabel = QLabel("聚类分析", self)
         # 数据集
         self.dataGroup = SettingCardGroup('数据集',self.scrollWidget)
@@ -120,6 +122,7 @@ class ClusterInterface(ScrollArea):
         self.scrollWidget.setObjectName('scrollWidget')
         self.recLabel.setObjectName('recLabel')
 
+        self.bar.resize(self.width(), self.bar.height())
         self.__initLayout()
         StyleSheet.CLUSTER_INTERFACE.apply(self)
 
@@ -170,16 +173,20 @@ class ClusterInterface(ScrollArea):
         )
 
     def startVideoCluster(self):
+        self.bar.start()
         self.__showWaitingTooltip("正在生成视频聚类结果")
         self.threadVideoCluster = ThreadCluster(True)
         self.threadVideoCluster.finished_signal.connect(self.drawVideoCluster.addDrawRes)
-        self.threadVideoCluster.finished_signal.connect(lambda: self.__showSucessTooltip("视频聚类成功"))
+        self.threadVideoCluster.finished.connect(lambda: self.__showSucessTooltip("视频聚类成功"))
+        self.threadVideoCluster.finished.connect(self.bar.stop)
         self.threadVideoCluster.start()
     
     def startUserCluster(self):
+        self.bar.start()
         self.__showWaitingTooltip("正在生成用户聚类结果")
         self.threadUserCluster = ThreadCluster(False)
         self.threadUserCluster.finished_signal.connect(self.drawUserCluster.addDrawRes)
-        self.threadUserCluster.finished_signal.connect(lambda: self.__showSucessTooltip("用户聚类成功"))
+        self.threadUserCluster.finished.connect(lambda: self.__showSucessTooltip("用户聚类成功"))
+        self.threadUserCluster.finished.connect(self.bar.stop)
         self.threadUserCluster.start()
     

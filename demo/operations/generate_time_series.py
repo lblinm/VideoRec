@@ -1,12 +1,9 @@
 import os
 import numpy as np
 import pandas as pd
-import csv
-import time
-from utils.settings import cfg
 
 def generate_time_series(file_path):
-  start_time = time.time()
+  #start_time = time.time()
   videos = pd.read_csv(file_path, usecols=['vid','play'])
   # 模拟的天数
   days = 30
@@ -41,6 +38,6 @@ def generate_time_series(file_path):
   df = pd.DataFrame(simulate)
   df.to_csv(save_path)
 
-  end_time = time.time()
-  print(f"生成时间序列数据集完成，耗时{round(end_time-start_time,2)}s")
+  #end_time = time.time()
+  #print(f"生成时间序列数据集完成，耗时{round(end_time-start_time,2)}s")
   return save_path

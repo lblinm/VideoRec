@@ -95,7 +95,7 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
     :param videos_watched_per_user: 想要每个用户观看的视频数
     :return: 没有返回值，直接写入指定路径的csv文件
     """
-    print("checkpoint0")
+    #print("checkpoint0")
     # 初始化偏好矩阵
     createUserPreferenceMatrix(user_num, 14)
     # 相关文件地址，请注意修改成本地文件地址
@@ -194,7 +194,7 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
     data_tags = pd.read_csv(tag_matrix)
 
 
-    print("checkpoint1")
+    #print("checkpoint1")
     # 05版本：各IO提前存储到数组里
     # 1.播放量->视频质量
     video_play = data_tags['play']
@@ -219,10 +219,10 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
         else:
             video_quality1.append(0.9)
             video_quality2.append(0.9)
-    print("checkpoint2")
+    #print("checkpoint2")
     # 2.视频标签
     video_tag = data_tags['tag']
-    print("checkpoint3")
+    #print("checkpoint3")
 
     # 第三步：偏好评分
     # 假定：第a组均匀评分，则a+1、a+2两组对该组视频进行偏好打分
@@ -353,12 +353,12 @@ def generate_rating(tag_matrix, video_num, user_num, videos_watched_per_user):
             if user_id % 200 == 0:
                 end_time2 = time.time()
                 execution_time2 = end_time2-start_time
-                print(f"目前处理到user_id:{user_id}到此消耗的时间为：{execution_time2}秒")
+                #print(f"目前处理到user_id:{user_id}到此消耗的时间为：{execution_time2}秒")
                 # print(f"第一部分耗时{per_end_time1-per_start_time}，第二部分耗时{per_end_time2-per_end_time1},第三部分耗时{per_end_time3-per_end_time2}")
-                print(f"目标视频数量为{targeted_video_size}")
+                #print(f"目标视频数量为{targeted_video_size}")
 
     end_time = time.time()
 
     execution_time = end_time - start_time
-    print(f"用户评分消耗的时间为：{execution_time}秒")
+    #print(f"用户评分消耗的时间为：{execution_time}秒")
 

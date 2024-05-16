@@ -1,9 +1,8 @@
 # coding:utf-8
-from qfluentwidgets import (SettingCardGroup,OptionsConfigItem,
-                            OptionsSettingCard, PushSettingCard,
+from qfluentwidgets import (SettingCardGroup,
                             PrimaryPushSettingCard, ScrollArea,
                             ExpandLayout,RangeSettingCard,
-                            ComboBoxSettingCard)
+                            ComboBoxSettingCard,IndeterminateProgressBar)
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import InfoBar
 from PyQt6.QtCore import Qt,QThread,pyqtSignal
@@ -16,7 +15,6 @@ from utils.style_sheet import StyleSheet
 from utils.settings import cfg
 import csv
 import os
-import time
 #================operations=================
 # from operations.user_video_rating import user_video_rating  #模拟生成评分矩阵
 from operations.generate_rating_scores import generate_rating
@@ -27,8 +25,8 @@ from operations.CF_SVD import SVD
 from operations.CB import CB_recommend
 class WorkThread1(QThread):
     finish_signal = pyqtSignal(list, str)
-    def __init__(self, parent=None):
-        super(WorkThread1, self).__init__(parent)
+    def __init__(self):
+        super().__init__()
         self.recAlgorithm = cfg.recChoose.value
         self.recUid = int(cfg.recUid.value)
         self.topk = cfg.recTopk.value
@@ -46,8 +44,8 @@ class WorkThread1(QThread):
             ratings_matrix = load_data(matrix_kind=0)
             svd = SVD(ratings_matrix, self.recUid,self.topk)
             svd.compute_svd()
-            res, indicators = svd.predict_rating()
-            detail = f"### 详细信息\n1. 耗时: {indicators['time']}s\n 2. 精确率: \n3. 召回率: \n4. 综合指标: \n"
+            res = svd.predict_rating()
+            #detail = f"### 详细信息\n1. 耗时: {indicators['time']}s\n 2. 精确率: \n3. 召回率: \n4. 综合指标: \n"
         elif self.recAlgorithm == 'Contend based':
             ratings_matrix = load_data(matrix_kind=1)
             res = CB_recommend(self.filepath, ratings_matrix, self.recUid, self.topk)
@@ -57,7 +55,7 @@ class WorkThread1(QThread):
     
 class WorkThread2(QThread):
     def __init__(self, video_num, parent=None):
-        super(WorkThread2, self).__init__(parent)
+        super().__init__()
         self.tag_matrix = cfg.videoTitleFiles.value[0]
         self.video_num = video_num
         self.user_num = cfg.userNum.value
@@ -75,6 +73,7 @@ class RecommendInterface(ScrollArea):
         self.expandLayout = ExpandLayout(self.scrollWidget)
 
         # label
+        self.bar = IndeterminateProgressBar(self, start=False)
         self.recLabel = QLabel("视频推荐", self)
 
         # 文件
@@ -168,6 +167,7 @@ class RecommendInterface(ScrollArea):
         self.scrollWidget.setObjectName('scrollWidget')
         self.recLabel.setObjectName('recLabel')
 
+        self.bar.resize(self.width(), self.bar.height())
         self.__initLayout()
         StyleSheet.RECOMMEND_INTERFACE.apply(self)
 
@@ -238,6 +238,7 @@ class RecommendInterface(ScrollArea):
         
 
     def __buildRatingMatrix(self):
+        self.bar.start()
         self.__showWaitingTooltip("正在生成评分矩阵，这可能需要几分钟，请耐心等候~")
         num_lines = -1
         # 获取视频总数
@@ -250,8 +251,9 @@ class RecommendInterface(ScrollArea):
         # generate_rating(self.videoTitleFileFolder[0],num_lines, self.userNum, self.videoPerPerson)
         self.th2.start()
         self.th2.finished.connect(lambda: self.__showSucessTooltip("生成评分矩阵成功"))
+        self.th2.finished.connect(self.bar.stop)
         rating_path = os.environ.get("DATA_PATH") + "\\ratings.csv"
-        self.ratingFolderCard.addFileItem(rating_path)
+        #self.ratingFolderCard.addFileItem(rating_path)
         cfg.set(cfg.ratingPath, [rating_path])
 
     def __recommendStart(self):
@@ -264,9 +266,12 @@ class RecommendInterface(ScrollArea):
         if not os.path.exists(os.environ.get("DATA_PATH")+"\\ratings.csv"):
             self.__showWarningTooltip('还未生成评分矩阵')
             return
+        self.bar.start()
         self.__showWaitingTooltip("正在生成推荐结果")
         self.th1 = WorkThread1() 
         self.th1.finish_signal.connect(self.__recommendFinish)
+        self.th1.finished.connect(lambda: self.__showSucessTooltip("已生成推荐结果"))
+        self.th1.finished.connect(self.bar.stop)
         self.th1.start()
 
     def __recommendFinish(self, rec_table:list, detail:str = None):

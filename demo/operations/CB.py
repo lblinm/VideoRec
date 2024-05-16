@@ -2,12 +2,12 @@ import os
 import pandas as pd
 import numpy as np
 import pickle
-import jieba, jieba.analyse, jieba.posseg as pseg
-import time
+import jieba, jieba.analyse
+#import time
 
 def CB_video(titles_path, inverted_table_cache, words_cache_path):
-  print("正在对视频标题进行关键词提取+建立视频画像倒排表...")
-  st_time = time.time()
+  #print("正在对视频标题进行关键词提取+建立视频画像倒排表...")
+  #st_time = time.time()
   titles = pd.read_csv(titles_path, usecols=['vid', 'title'])
   titles.set_index('vid', inplace=True, drop=True)
 
@@ -36,11 +36,11 @@ def CB_video(titles_path, inverted_table_cache, words_cache_path):
   with open(words_cache_path, 'wb') as file:  
     pickle.dump(words, file)
 
-  end_time = time.time()
-  print(f"关键词提取+倒排表建立完毕, 耗时{end_time-st_time}s")
+  #end_time = time.time()
+  #print(f"关键词提取+倒排表建立完毕, 耗时{end_time-st_time}s")
 
 def CB_user(ratings, users_profile_cache):
-  print("正在提取用户喜爱的关键词，建立用户画像...")
+  #print("正在提取用户喜爱的关键词，建立用户画像...")
   # 加载关键词列表
   words_cache_path = os.environ.get("DATA_PATH") + "\\word_cache.pkl"
   with open(words_cache_path, 'rb') as file:
@@ -65,7 +65,7 @@ def CB_user(ratings, users_profile_cache):
 
   with open(users_profile_cache, 'wb') as file:
     pickle.dump(users_profile, file)
-  print("用户画像创建完毕")
+  #print("用户画像创建完毕")
 
 def CB_recommend(titles_path,ratings, rec_uid, top_k):
   # 缓存文件路径
