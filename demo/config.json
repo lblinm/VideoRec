@@ -1,8 +1,8 @@
 {
     "predict": {
         "algorithm": "ARIMA",
-        "days": 30,
-        "vid": ""
+        "days": 10,
+        "vid": "0"
     },
     "Folders": {
         "ratingPath": [

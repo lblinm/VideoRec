@@ -7,18 +7,17 @@ from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.stattools import adfuller
 
 # 对编号为vid的视频进行次数为step的预测
-def arima_forecast(vid,step):
+def arima_forecast(time_series_path,vid,step):
     
     warnings.filterwarnings("ignore")
 
     # 从CSV文件中读取数据
-    data_row = pd.read_csv('source/time_series.csv', skiprows=vid,nrows=1,header=0,index_col=0)
+    data_row = pd.read_csv(time_series_path, skiprows = int(vid) + 1, nrows=1,header=None,index_col=0)
     data = data_row.values.flatten()
 
     time_index = pd.date_range('2024-01-01', periods=len(data))
     ts = pd.Series(data, index=time_index)
-
-
+    
     # 判断时间序列的平稳性
     def check_stationarity(timeseries):
         result = adfuller(timeseries)
@@ -73,4 +72,6 @@ def arima_forecast(vid,step):
     result = model.fit()
     forecast = result.forecast(step)
     rounded_forecast = forecast.round(3)
-    return rounded_forecast.values
+
+    predict =  list(data) + rounded_forecast.values.tolist()
+    return  predict # list(data), rounded_forecast.values.tolist()

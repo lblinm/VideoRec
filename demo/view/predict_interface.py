@@ -4,7 +4,7 @@ from qfluentwidgets import (SettingCardGroup,ScrollArea,
                             ComboBoxSettingCard, RangeSettingCard)
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import InfoBar
-from PyQt6.QtCore import Qt, QThread
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtWidgets import (QWidget, QLabel, QLabel)
 import os
 from components.file_list_setting_card import FileListSettingCard
@@ -13,6 +13,7 @@ from components.tabInterface import TabInterface
 from utils.style_sheet import StyleSheet
 from utils.settings import cfg
 from operations.generate_time_series import generate_time_series
+from operations.predict import arima_forecast
 
 class ThreadGenerateTimeSeries(QThread):
     def __init__(self):
@@ -23,10 +24,18 @@ class ThreadGenerateTimeSeries(QThread):
         generate_time_series(self.file_path)
 
 class ThreadPredict(QThread):
+    finishedSignal = pyqtSignal(int, list, list, str, str, bool)
     def __init__(self):
         super().__init__()
+        self.timeSeriesPath = cfg.timeSeriesPath.value[0]
+        self.vidPre = cfg.vidPre.value
+        self.predictDays = cfg.predictDays.value
     def run(self):
-        return
+        y =  arima_forecast(self.timeSeriesPath, self.vidPre, self.predictDays)
+        # x = list(range(1, 31))
+        x = list(range(1, 30+ self.predictDays+1))
+        tabTitle = f"视频{self.vidPre}的历史播放量和预测结果"
+        self.finishedSignal.emit(1, x, y, tabTitle, '', True)
     
 class PredictInterface(ScrollArea):
     """ Setting interface """
@@ -131,14 +140,9 @@ class PredictInterface(ScrollArea):
         #self.expandLayout.addWidget(self.tableView)
 
     def __connectSignalToSlot(self):
-        self.predictButtonCard.clicked.connect(self.predict)
+        self.predictButtonCard.clicked.connect(self.startPredict)
         self.videoTimeSeriesButton.clicked.connect(self.startGenerateTimeSeries)
     
-    def predict(self):
-        title = ['id','标题']
-        x = [1,2,3,4,5,6,7,8,9,10]
-        y = [213,1232,324,23432,432432,43234,32432,32432,3243,32432]
-        self.drawPredict.addDrawRes(1, x, y, '测试')
     
     def __showWaitingTooltip(self, s:str):
         InfoBar.info(
@@ -161,11 +165,11 @@ class PredictInterface(ScrollArea):
         self.threadGenerateTimeSeries.finished.connect(lambda: self.__showSucessTooltip('已生成播放量时间序列数据集'))
         
         time_series_path = os.environ.get('DATA_PATH')+'\\time_series.csv'
-        self.predictFolderCard.addFileItem(time_series_path)
         cfg.set(cfg.timeSeriesPath, [time_series_path])
         
     def startPredict(self):
         self.__showWaitingTooltip('正在预测视频未来播放量')
         self.threadPredict = ThreadPredict()
-    
+        self.threadPredict.finishedSignal.connect(self.drawPredict.addDrawRes)
         self.threadPredict.finished.connect(lambda: self.__showSucessTooltip('已生成预测播放量'))
+        self.threadPredict.start()

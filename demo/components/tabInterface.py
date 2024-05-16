@@ -101,7 +101,7 @@ class TabInterface(QWidget):
         self.tabBar.removeTab(index)
 
     
-    def addDrawRes(self,kind: int, x:list, y:list, tabTitle:str, detail:str = ''):
+    def addDrawRes(self,kind: int, x:list, y:list, tabTitle:str, detail:str = '', noLabel=False): #, x1:list=None, y1:list=None
         '''
         添加图标签页
         parmas: kind=0或1, 0代表柱形图，1代表折线图
@@ -121,14 +121,19 @@ class TabInterface(QWidget):
             barItem = pg.BarGraphItem(x=x, height=y, width=0.5, brush=(0, 159, 170),pen=None)
             drawRes.addItem(barItem)
         elif kind == 1:
-            drawRes.plot(x, y, pen=(0, 159, 170), symbolBrush=(0, 159, 170))
-        
+            drawRes.plot(x, y, pen=(0, 159, 170))  #symbolBrush=(0, 159, 170)
+            # if x1 is not None:
+            #     print(1)
+            #     drawRes.plot(x1, y1, pen='g')
         # 添加数据标签
-        for i in range(len(x)):
-            label = pg.TextItem(text=str(y[i]))
-            label.setAnchor((0.5,1))
-            label.setPos(x[i], y[i])
-            drawRes.addItem(label)
+        if not noLabel:
+            for i in range(len(x)):
+                label = pg.TextItem(text=str(y[i]))
+                label.setAnchor((0.5,1))
+                label.setPos(x[i], y[i])
+                drawRes.addItem(label)
+        
+
         hBoxLayout.addWidget(drawRes, 0)
 
         # 文本
