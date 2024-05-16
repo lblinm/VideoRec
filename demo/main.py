@@ -45,7 +45,7 @@ class Demo(FluentWindow):
 
   def initWindow(self):
     self.resize(800, 600)
-    self.setWindowTitle('短视频推荐分析模拟器')
+    self.setWindowTitle('视频推荐分析工具')
     self.setWindowIcon(QIcon(os.environ.get('IMAGE_PATH')+'\\logo.png'))
 
     #创建初始页
