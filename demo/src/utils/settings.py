@@ -7,7 +7,7 @@ from qfluentwidgets import (qconfig, QConfig, ConfigItem, OptionsConfigItem, Boo
                             OptionsValidator, RangeConfigItem, RangeValidator, ConfigValidator,
                             FolderListValidator, Theme, FolderValidator, ConfigSerializer)
 
-
+import os
 
 def isWin11():
     return sys.platform == 'win32' and sys.getwindowsversion().build >= 22000
@@ -72,4 +72,4 @@ class Config(QConfig):
 
 cfg = Config()
 cfg.themeMode.value = Theme.AUTO
-qconfig.load('config.json', cfg)
+qconfig.load(os.environ.get('CONFIG_PATH'), cfg)

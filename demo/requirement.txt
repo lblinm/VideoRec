@@ -6,3 +6,4 @@ jieba
 gensim
 scikit-learn
 statsmodels
+pyqtgraph

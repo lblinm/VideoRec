@@ -7,20 +7,20 @@ from qfluentwidgets import (
   FluentWindow, FluentIcon as FIF, setTheme,Theme,
     NavigationItemPosition,SplashScreen
 )
-#from view.recommend import Recommend
-from view.recommend_interface import RecommendInterface
-from view.cluster_interface import ClusterInterface
-from view.predict_interface import PredictInterface
-
-import utils.settings as settings
 
 # 路径管理
 WORKING_PATH = os.path.abspath(os.path.dirname(__file__))
 os.environ['WORKING_PATH'] = WORKING_PATH
-os.environ['IMAGE_PATH'] = WORKING_PATH + '\\resource\\image'
-os.environ['QSS_PATH'] = WORKING_PATH + '\\resource\\qss'
-os.environ['WORD_PATH'] = WORKING_PATH + '\\resource\\word'
-os.environ['DATA_PATH'] = WORKING_PATH + '\\data'
+os.environ['IMAGE_PATH'] = WORKING_PATH + '\\..\\assets\\image'
+os.environ['QSS_PATH'] = WORKING_PATH + '\\..\\assets\\qss'
+os.environ['WORD_PATH'] = WORKING_PATH + '\\..\\assets\\word'
+os.environ['DATA_PATH'] = WORKING_PATH + '\\..\\data'
+os.environ['CONFIG_PATH'] = WORKING_PATH + '\\..\\config.json'
+
+from view.recommend_interface import RecommendInterface
+from view.cluster_interface import ClusterInterface
+from view.predict_interface import PredictInterface
+import utils.settings as settings
 
 
 class Demo(FluentWindow):
