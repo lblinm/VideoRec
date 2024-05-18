@@ -1,9 +1,0 @@
-pandas
-numpy
-pyqt6
-PyQt6-Fluent-Widgets -i https://pypi.org/simple/
-jieba
-gensim
-scikit-learn
-statsmodels
-pyqtgraph
