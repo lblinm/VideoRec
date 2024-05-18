@@ -26,8 +26,10 @@ pip install pyportable-installer==4.4.2
 
 在 python 环境所在目录找到`embed-python-manager`库目录，打开`source_list\npm_taobao_org.yml`
 
-1. 修改`home`值`https://npm.taobao.org/mirrors/python/`为清华源`home: https://pypi.tuna.tsinghua.edu.cn/simple/`
-2. 项目需要的对应嵌入版 python 下载源修改为正确的源`python310: https://www.python.org/ftp/python/3.10.0/python-3.10.0b4-embed-amd64.zip`
+1. 修改`home`值`https://npm.taobao.org/mirrors/python/`为官方源`home: https://pypi.org/simple`
+2. 项目需要的对应嵌入版 python 下载源修改为正确的源`python39: https://www.python.org/ftp/python/3.9.7/python-3.9.7-embed-amd64.zip`
+
+> 注：经测试使用 python3.10 打包后会报错(关于 win32api)，使用 python3.9 就没有了
 
 # 准备项目运行的虚拟环境
 
@@ -65,22 +67,14 @@ project
 │  README.md
 │  requirement.txt
 │  requirements.txt
-│
 ├─assets
-│
 ├─data
-│
 ├─docs
-│
 ├─src
    │  main.py
-   │
    ├─components
-   │
    ├─operations
-   │
    ├─utils
-   │
    └─view
 ```
 
@@ -206,10 +200,28 @@ project
 }
 ```
 
+> 注：`build.launchers.{app_name}.icon`中填入正常 icon 路径，同样会报错，未解决
+
 # 开始打包
 
-`pyproject.json`同级目录下终端运行
+使用，`pyproject.json`同级目录下终端运行
 
 ```shell
 python -m pyportable_installer build
 ```
+
+# 补充`tkinter`库
+
+项目中的虚拟环境使用的是嵌入式 Python, 没有自带 tkinter 库.
+
+把开始时新建的虚拟环境中的 2 个文件夹和 3 个文件复制进打包生成的`dist\xx\venv`文件夹
+
+1. tcl
+2. tkinter
+3. \_tkinter.pyd
+4. tc86t.dll
+5. tk86t.dll
+
+至此，双击 exe 文件应当能正常运行
+
+> 但在`pyproject.json`文件夹中`"enable_console": false`同样会出现控制台，这个问题没有解决
