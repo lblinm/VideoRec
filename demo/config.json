@@ -2,7 +2,7 @@
     "predict": {
         "algorithm": "ARIMA",
         "days": 10,
-        "vid": "12"
+        "vid": "11"
     },
     "Folders": {
         "ratingPath": [
@@ -16,7 +16,7 @@
         ]
     },
     "rec": {
-        "algorithm": "SVD CF",
+        "algorithm": "User based CF",
         "topk": 100,
         "recUid": "1"
     },
@@ -26,7 +26,7 @@
     },
     "cluster": {
         "userClusterAlgorithm": "基于相似兴趣",
-        "videoClusterAlgorithm": "基于原有标签"
+        "videoClusterAlgorithm": "基于用户行为"
     },
     "rating": {
         "userNum": 1000,
