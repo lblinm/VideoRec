@@ -16,7 +16,7 @@
         ]
     },
     "rec": {
-        "algorithm": "User based CF",
+        "algorithm": "Contend based",
         "topk": 100,
         "recUid": "1"
     },
@@ -26,7 +26,7 @@
     },
     "cluster": {
         "userClusterAlgorithm": "基于相似兴趣",
-        "videoClusterAlgorithm": "基于用户行为"
+        "videoClusterAlgorithm": "基于原有标签"
     },
     "rating": {
         "userNum": 1000,
